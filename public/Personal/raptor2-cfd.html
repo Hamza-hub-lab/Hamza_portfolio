@@ -1,0 +1,1269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Raptor 2 CFD Simulation | Yazid Hamza</title>
+  <meta name="description" content="Advanced CFD simulation of internal flow dynamics in SpaceX's Raptor 2 combustion chamber and nozzle - Full-flow staged combustion analysis." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Grotesk:wght@400;600;700&family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg-dark: #000000;
+      --bg-light: #ffffff;
+      --panel: #0f1626;
+      --text-dark: #e8eefc;
+      --text-light: #1a1a1a;
+      --muted-dark: rgba(232,238,252,.72);
+      --muted-light: rgba(26,26,26,.65);
+      --line-dark: rgba(232,238,252,.12);
+      --line-light: rgba(26,26,26,.12);
+
+      --accent: #7dd3fc;
+      --accent2:#a78bfa;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --shadow: 0 12px 40px rgba(0,0,0,.35);
+
+      --radius: 18px;
+      --max: 1100px;
+
+      --font-sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --font-display: "Space Grotesk", var(--font-sans);
+
+      --section-pad: clamp(70px, 7vw, 110px);
+    }
+
+    *{ box-sizing: border-box; }
+    html{ scroll-behavior: smooth; }
+    body{
+      margin: 0;
+      color: var(--text-light);
+      background: var(--bg-light);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+    }
+
+    a{ color: inherit; text-decoration: none; }
+    a:hover{ opacity: .9; }
+
+    .container{
+      width: min(var(--max), calc(100% - 2rem));
+      margin-inline: auto;
+    }
+
+    /* Header */
+    .header{
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,.95);
+      border-bottom: 1px solid var(--line-light);
+    }
+    .nav{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .9rem 0;
+      gap: 1rem;
+    }
+    .brand{
+      display: inline-flex;
+      align-items: center;
+      gap: .8rem;
+      font-family: var(--font-display);
+      letter-spacing: -0.02em;
+      font-size: 1.1rem;
+      color: var(--text-light);
+    }
+    .back-btn{
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .55rem .85rem;
+      border-radius: 999px;
+      border: 1px solid var(--line-light);
+      background: rgba(26,26,26,.02);
+      color: var(--text-light);
+      font-size: .95rem;
+      font-weight: 600;
+      transition: all .2s ease;
+    }
+    .back-btn:hover{
+      background: rgba(125,211,252,.1);
+      border-color: var(--accent);
+      transform: translateX(-2px);
+    }
+
+    /* Hero Section */
+    .hero-project{
+      padding: 4rem 0 3rem;
+      background: linear-gradient(180deg, rgba(125,211,252,.08), transparent);
+      border-bottom: 1px solid var(--line-light);
+    }
+    .hero-project h1{
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.15;
+      margin: 0;
+      letter-spacing: -0.03em;
+      color: var(--text-light);
+    }
+    .hero-project .meta{
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .meta-item{
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .95rem;
+      color: var(--muted-light);
+    }
+    .meta-item strong{
+      color: var(--text-light);
+      font-weight: 600;
+    }
+
+    /* Content Sections */
+    .section{
+      padding: var(--section-pad) 0;
+      border-bottom: 1px solid var(--line-light);
+    }
+    .section:last-of-type{
+      border-bottom: none;
+    }
+
+    .eyebrow{
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      font-size: .9rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted-light);
+      margin-bottom: 1rem;
+    }
+    .eyebrow::before{
+      content:"";
+      width: 26px;
+      height: 1px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: .9;
+    }
+
+    h2{
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 2.3vw, 2.15rem);
+      line-height: 1.2;
+      margin: 0 0 1.5rem;
+      letter-spacing: -0.02em;
+      color: var(--text-light);
+    }
+
+    h3{
+      font-family: var(--font-display);
+      font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+      line-height: 1.3;
+      margin: 2rem 0 1rem;
+      letter-spacing: -0.01em;
+      color: var(--text-light);
+    }
+
+    h4{
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin: 1.5rem 0 .8rem;
+      color: var(--text-light);
+    }
+
+    p{
+      margin: 1rem 0;
+      color: var(--text-light);
+      max-width: 75ch;
+    }
+
+    /* Image Container */
+    .image-container{
+      margin: 2rem 0;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--line-light);
+      background: rgba(26,26,26,.02);
+      box-shadow: 0 8px 30px rgba(0,0,0,.1);
+    }
+    .image-container img{
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .image-caption{
+      padding: 1rem 1.2rem;
+      background: rgba(26,26,26,.03);
+      font-size: .9rem;
+      color: var(--muted-light);
+      border-top: 1px solid var(--line-light);
+    }
+
+    /* Grid Layouts */
+    .grid-2{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .card{
+      border-radius: var(--radius);
+      border: 1px solid var(--line-light);
+      background: rgba(26,26,26,.02);
+      padding: 1.5rem;
+      transition: transform .3s ease, box-shadow .3s ease;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0,0,0,.12);
+    }
+    .card h4{
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin: 0 0 .8rem;
+      color: var(--text-light);
+    }
+    .card p{
+      margin: 0;
+      font-size: .95rem;
+    }
+
+    /* Stats/Numbers */
+    .stats-grid{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .stat-card{
+      border-radius: var(--radius);
+      border: 1px solid var(--line-light);
+      background: linear-gradient(135deg, rgba(125,211,252,.08), rgba(167,139,250,.06));
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .stat-value{
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: .5rem;
+    }
+    .stat-label{
+      font-size: .9rem;
+      color: var(--muted-light);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    /* List Styles */
+    ul, ol{
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+    }
+    li{
+      margin: .5rem 0;
+      color: var(--text-light);
+    }
+    li strong{
+      color: var(--accent);
+    }
+
+    /* Table */
+    .table-container{
+      overflow-x: auto;
+      margin: 2rem 0;
+      border-radius: var(--radius);
+      border: 1px solid var(--line-light);
+    }
+    table{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .95rem;
+    }
+    th{
+      background: rgba(125,211,252,.1);
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--line-light);
+      color: var(--text-light);
+    }
+    td{
+      padding: 1rem;
+      border-bottom: 1px solid var(--line-light);
+      color: var(--text-light);
+    }
+    tr:last-child td{
+      border-bottom: none;
+    }
+
+    /* Highlight Box */
+    .highlight-box{
+      border-radius: var(--radius);
+      border: 1px solid var(--accent);
+      background: rgba(125,211,252,.08);
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+    .highlight-box h4{
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin: 0 0 1rem;
+      color: var(--accent);
+    }
+    .highlight-box p{
+      margin: .5rem 0;
+    }
+
+    /* Equation Box */
+    .equation-box{
+      border-radius: var(--radius);
+      border: 1px solid var(--line-light);
+      background: rgba(167,139,250,.05);
+      padding: 1.5rem;
+      margin: 2rem 0;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+
+    /* Process/Timeline */
+    .timeline{
+      position: relative;
+      padding-left: 2rem;
+      margin: 2rem 0;
+    }
+    .timeline::before{
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--accent), var(--accent2));
+    }
+    .timeline-item{
+      position: relative;
+      padding-bottom: 2rem;
+    }
+    .timeline-item::before{
+      content: '';
+      position: absolute;
+      left: -2.45rem;
+      top: .3rem;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg-light);
+    }
+    .timeline-item h4{
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin: 0 0 .5rem;
+      color: var(--text-light);
+    }
+    .timeline-item p{
+      margin: .3rem 0;
+      font-size: .95rem;
+    }
+
+    /* Footer */
+    footer{
+      padding: 2rem 0;
+      border-top: 1px solid var(--line-light);
+      background: var(--bg-light);
+      text-align: center;
+      color: var(--muted-light);
+      font-size: .9rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px){
+      .stats-grid{
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .grid-2{
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      html{ scroll-behavior: auto; }
+      *{ transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header Navigation -->
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <a class="brand" href="../index.html">Yazid Hamza</a>
+        <a class="back-btn" href="../index.html#research-projects">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          Back to Portfolio
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-project">
+    <div class="container">
+      <h1>Advanced CFD Simulation of Internal Flow Dynamics in the Raptor 2 Combustion Chamber and Nozzle</h1>
+      <div class="meta">
+        <div class="meta-item">
+          <strong>Type:</strong> Research Project
+        </div>
+        <div class="meta-item">
+          <strong>Duration:</strong> 2 Months
+        </div>
+        <div class="meta-item">
+          <strong>Team:</strong> 1 Member
+        </div>
+        <div class="meta-item">
+          <strong>Tools:</strong> NASA CEA, RPA, Cantera, ANSYS Fluent, Python
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Abstract Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Abstract</div>
+        <h2>Research Summary</h2>
+        <p>
+          This report presents a comprehensive Computational Fluid Dynamics (CFD) study of the internal flow dynamics within the combustion chamber and nozzle of SpaceX's Raptor 2 engine, a cutting-edge Full-Flow Staged Combustion (FFSC) engine fueled by methane (CH₄) and oxygen (O₂). The objective of this research is to characterize the complex flow behavior, combustion efficiency, and performance parameters under both sea-level and vacuum conditions, providing critical insights into next-generation propulsion system optimization.
+        </p>
+
+        <div class="image-container">
+          <img src="images/raptor-engines.jpg" alt="SpaceX Raptor Engine Family" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Raptor+Engine+Family'">
+          <div class="image-caption">SpaceX Raptor engine evolution: Raptor 1, Raptor 2, and Raptor 3</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">296 bar</div>
+            <div class="stat-label">Chamber Pressure</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">2.35 MN</div>
+            <div class="stat-label">Sea Level Thrust</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">334 s</div>
+            <div class="stat-label">Specific Impulse</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">3,420 m/s</div>
+            <div class="stat-label">Exit Velocity</div>
+          </div>
+        </div>
+
+        <h3>Key Findings</h3>
+        <p>
+          The simulation achieved a peak chamber pressure of 296 bar, a 1.33% deviation from the nominal 300 bar of the real Raptor 2 engine, and combustion temperatures up to 3,720 K. Exhaust gases accelerated to 3,420 m/s with a Mach number of 3.93, validating the model's fidelity. Species mass fraction profiles demonstrated near-complete combustion, with CH₄ and O₂ residuals below 10⁻¹⁰.
+        </p>
+      </div>
+    </section>
+
+    <!-- Introduction Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Context</div>
+        <h2>Introduction & Motivation</h2>
+        
+        <p>
+          Rocket propulsion plays a critical role in space exploration, enabling vehicles to overcome Earth's gravity and travel into orbit and beyond. At the heart of these propulsion systems lies the combustion chamber and nozzle, where high-pressure, high-temperature gases are generated and accelerated to produce thrust. Understanding the complex fluid dynamics within these components is essential for optimizing performance and ensuring structural integrity.
+        </p>
+
+        <p>
+          Computational Fluid Dynamics (CFD) has become an indispensable tool in modern propulsion system design, allowing engineers to simulate and analyze internal flows with high precision, significantly reducing the need for costly and time-consuming physical testing. In this context, SpaceX's Raptor 2 engine stands as a state-of-the-art example of a full-flow staged combustion engine powered by liquid methane and liquid oxygen (methalox), offering high performance and reusability.
+        </p>
+
+        <div class="image-container">
+          <img src="images/raptor2-cutaway.jpg" alt="Raptor 2 Engine Cutaway" onerror="this.src='https://via.placeholder.com/1200x700/0f1626/7dd3fc?text=Raptor+2+Engine+Cutaway'">
+          <div class="image-caption">SpaceX Raptor 2 engine showing internal components and flow paths</div>
+        </div>
+
+        <h3>Overview of the Raptor 2 Engine</h3>
+        <p>
+          The Raptor 2 engine, developed by SpaceX, represents a major leap in rocket propulsion technology. It is a full-flow staged combustion engine (FFSC) that uses methane (CH₄) and liquid oxygen (LOX) as propellants, making it suitable for long-term missions, including potential Mars colonization. Designed for high efficiency and reusability, Raptor 2 delivers significantly more thrust and is mechanically simpler compared to its predecessor.
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+                <th>Unit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Nozzle Exit Diameter</td>
+                <td>1.3</td>
+                <td>m</td>
+              </tr>
+              <tr>
+                <td>Throat to Exit Length</td>
+                <td>1.5</td>
+                <td>m</td>
+              </tr>
+              <tr>
+                <td>Area Ratio</td>
+                <td>34.34</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>Fuel</td>
+                <td>Gaseous CH₄</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>Oxidizer</td>
+                <td>Gaseous O₂</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>O/F Ratio</td>
+                <td>3.6</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>Chamber Pressure (nominal)</td>
+                <td>300</td>
+                <td>bar</td>
+              </tr>
+              <tr>
+                <td>Sea Level Thrust</td>
+                <td>2.3</td>
+                <td>MN</td>
+              </tr>
+              <tr>
+                <td>Sea Level ISP</td>
+                <td>327</td>
+                <td>s</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Full-Flow Staged Combustion (FFSC)</h3>
+        <p>
+          Full-flow staged combustion (FFSC) is a type of staged combustion cycle with a dual-shaft design that uses both oxidizer-rich and fuel-rich preburners, where the entire supply of both propellants passes through the turbines. The fuel turbopump is driven by the fuel-rich preburner, and the oxidizer turbopump is driven by the oxidizer-rich preburner.
+        </p>
+
+        <div class="image-container">
+          <img src="images/ffsc-diagram.jpg" alt="Full Flow Staged Combustion Cycle" onerror="this.src='https://via.placeholder.com/1200x700/0f1626/7dd3fc?text=FFSC+Diagram'">
+          <div class="image-caption">Full-Flow Staged Combustion cycle schematic showing dual preburners and propellant flow paths</div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>🚀 FFSC Advantages</h4>
+            <ul>
+              <li>Turbines operate at lower temperatures and pressures</li>
+              <li>Longer engine lifespans and higher reliability</li>
+              <li>No inter-propellant turbine seal required</li>
+              <li>Complete gasification enables faster reactions</li>
+              <li>Higher chamber pressure potential</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>⚙️ Technical Characteristics</h4>
+            <ul>
+              <li>Dual-shaft design with two preburners</li>
+              <li>Classified as a gas-gas engine</li>
+              <li>Enables smaller combustion chamber</li>
+              <li>Up to 1000 flights anticipated for Raptor</li>
+              <li>Superior to gas generator and single-shaft SC</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="highlight-box">
+          <h4>Historical Context</h4>
+          <p>
+            As of 2024, only four FFSC rocket engines have been tested on the ground: the Soviet RD-270 (1960s), the U.S. Integrated Powerhead Demonstrator (mid-2000s), SpaceX's Raptor (first tested February 2019), and Stoke Space's Nova engine (2024). The first flight test of an FFSC engine occurred on July 25, 2019, when SpaceX flew their Raptor engine on the Starhopper test vehicle. As of January 2025, the Raptor remains the only FFSC engine to have flown on a launch vehicle.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Methodology Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Approach</div>
+        <h2>Methodology</h2>
+        
+        <p>
+          The methodology combines multiple modeling tools in a structured workflow: preliminary thermodynamic analysis via NASA's Chemical Equilibrium with Applications (CEA), geometric refinement using Rocket Propulsion Analysis (RPA), and preburner combustion modeling with Cantera in Python. A 2D axisymmetric CFD model was developed, integrating high-resolution meshing, realistic boundary conditions, and turbulence-chemistry interaction based on the GRI-Mech 3.0 chemical mechanism.
+        </p>
+
+        <div class="timeline">
+          <div class="timeline-item">
+            <h4>Phase 1: Preliminary Design Using NASA CEA</h4>
+            <p><strong>Objective:</strong> Obtain key thermodynamic and performance parameters</p>
+            <p>Used NASA CEA to calculate specific impulse, characteristic velocity, combustion temperature, and exhaust gas properties. These parameters formed the foundation for defining initial geometry including throat area, expansion ratio, chamber length, and diameters.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 2: Geometry Refinement with RPA</h4>
+            <p><strong>Tool:</strong> Rocket Propulsion Analysis software</p>
+            <p>Refined preliminary design using RPA to optimize nozzle geometry, validate thermochemical results from NASA CEA, and generate detailed performance predictions under realistic conditions. Adjusted expansion area ratio to 36 to match Raptor 2's 1.3m exit diameter.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 3: Preburner Combustion Modeling</h4>
+            <p><strong>Tool:</strong> Cantera (Python)</p>
+            <p>Developed custom Python program to simulate preburner equilibrium compositions for both fuel-rich and oxidizer-rich preburners. Determined outlet temperatures (808K for fuel, 707K for oxidizer) and species mass fractions using GRI-Mech 3.0 mechanism.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 4: 2D Axisymmetric Geometry Creation</h4>
+            <p><strong>Tool:</strong> SolidWorks</p>
+            <p>Created 2D axisymmetric model based on RPA output to reduce computational cost. Designed simplified injectors with coaxial geometry sized using discharge coefficient methods and pressure drop calculations (24% for oxidizer, 9.5% for fuel).</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 5: Mesh Generation</h4>
+            <p><strong>Technique:</strong> Structured quadrilateral meshing</p>
+            <p>Generated high-quality mesh using face meshing with quadrilateral elements. Applied 20 divisions near walls to capture viscous effects. Used size division method for controlled mesh density: 130 divisions at throat, 100 at outlet, 260 along axis/wall.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 6: CFD Simulation Setup</h4>
+            <p><strong>Tool:</strong> ANSYS Fluent</p>
+            <p>Configured steady-state simulation using SIMPLE algorithm for pressure-velocity coupling. Implemented k-ω SST turbulence model with GRI-Mech 3.0 chemistry (53 species, 325 reactions). Applied presumed beta-PDF combustion model with mixture fraction approach.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 7: Multiple Simulation Cases</h4>
+            <p><strong>Strategy:</strong> Parametric study approach</p>
+            <p>Conducted 8 simulations varying O/F ratio (3.0 vs 3.6), inlet conditions (liquid vs gaseous, pure vs realistic fractions), and ambient pressure (vacuum vs sea level) to understand FFSC benefits and design trade-offs.</p>
+          </div>
+
+          <div class="timeline-item">
+            <h4>Phase 8: Post-Processing and Validation</h4>
+            <p><strong>Analysis:</strong> Performance comparison and validation</p>
+            <p>Analyzed pressure, temperature, velocity, Mach number, and species distributions. Corrected numerical artifacts in Mach field near walls. Compared results with actual Raptor 2 performance data, achieving <3% deviation in key parameters.</p>
+          </div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/methodology-flowchart.jpg" alt="Methodology Workflow" onerror="this.src='https://via.placeholder.com/1200x500/0f1626/7dd3fc?text=Methodology+Workflow'">
+          <div class="image-caption">Complete methodology workflow from preliminary design to CFD validation</div>
+        </div>
+
+        <h3>Governing Equations</h3>
+        <p>
+          The mathematical model employed in this study is based on the steady-state conservation equations of mass, momentum, energy, and species. Given the highly turbulent and reactive environment, Reynolds-Averaged Navier-Stokes (RANS) equations with Favre-averaging were used to account for compressibility effects.
+        </p>
+
+        <div class="highlight-box">
+          <h4>Key Modeling Assumptions</h4>
+          <ul>
+            <li>Steady-state flow conditions</li>
+            <li>2D axisymmetric geometry</li>
+            <li>Adiabatic walls (no heat transfer)</li>
+            <li>Non-reactive wall surfaces</li>
+            <li>k-ω SST turbulence closure</li>
+            <li>Presumed beta-PDF combustion model</li>
+            <li>GRI-Mech 3.0 chemical kinetics</li>
+            <li>Unity Lewis number assumption</li>
+          </ul>
+        </div>
+
+        <h3>Injector Design</h3>
+        <p>
+          The sizing of the injectors is a critical aspect of the design. We used 640 coaxial injectors distributed across the injector plate. The injectors were sized using discharge coefficient methods (Cd = 0.6) with calculated pressure drops of 72.2 bar for oxidizer and 28.8 bar for fuel, corresponding to 24% and 9.5% of chamber pressure respectively.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>3D Injector Configuration</h4>
+            <ul>
+              <li><strong>Total injectors:</strong> 640 elements</li>
+              <li><strong>Type:</strong> Coaxial swirl injectors</li>
+              <li><strong>Oxidizer diameter (D1):</strong> 6.0 mm</li>
+              <li><strong>Inner diameter (D2):</strong> 7.0 mm</li>
+              <li><strong>Outer diameter (D3):</strong> 8.5 mm</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>2D Simplified Model</h4>
+            <ul>
+              <li><strong>Modeled injectors:</strong> 10 elements</li>
+              <li><strong>Oxidizer slot length:</strong> 2.0 mm</li>
+              <li><strong>Fuel slot length:</strong> 1.21 mm</li>
+              <li><strong>Injector spacing:</strong> 10.58 mm</li>
+              <li><strong>Total injector length:</strong> 4.2 mm</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Findings</div>
+        <h2>Simulation Results</h2>
+
+        <h3>Convergence Analysis</h3>
+        <p>
+          The simulation was executed for 5,000 iterations, after which convergence was reached. Although the residuals of continuity did not fall below the typical threshold of 1×10⁻³, the residuals of other variables showed stable convergence. Key physical quantities including mass flow rate, outlet pressure, temperature, velocity, and Mach number all stabilized, confirming solution reliability.
+        </p>
+
+        <div class="highlight-box">
+          <h4>Convergence Criteria Met</h4>
+          <ul>
+            <li>Mass flow rate reached target: -718 kg/s (outward flow)</li>
+            <li>Outlet temperature stabilized with minor acceptable oscillations</li>
+            <li>Velocity and Mach number converged to steady values</li>
+            <li>Pressure distribution showed physical consistency</li>
+            <li>All species mass fractions reached equilibrium</li>
+          </ul>
+        </div>
+
+        <h3>Pressure Distribution</h3>
+        <p>
+          The simulation recorded a chamber pressure of approximately 305 bar compared to the expected 300 bar from Raptor 2 specifications, representing only a 1.7% difference. This excellent agreement validates the modeling approach. The pressure remains relatively stable within the chamber before dropping significantly through the convergent-divergent nozzle as thermal energy converts to kinetic energy.
+        </p>
+
+        <div class="image-container">
+          <img src="images/pressure-distribution.jpg" alt="Pressure Distribution" onerror="this.src='https://via.placeholder.com/1200x500/0f1626/7dd3fc?text=Pressure+Distribution'">
+          <div class="image-caption">Static pressure distribution from combustion chamber through nozzle exit</div>
+        </div>
+
+        <h3>Temperature Distribution</h3>
+        <p>
+          The temperature within the combustion chamber reaches a peak of approximately 3,720 K, confirming efficient combustion of the methane-oxygen mixture. After combustion, hot gases expand through the nozzle with significant temperature drop as internal energy converts to kinetic energy. The adiabatic wall assumption naturally leads to higher gas temperatures than real engines with regenerative cooling.
+        </p>
+
+        <div class="image-container">
+          <img src="images/temperature-distribution.jpg" alt="Temperature Distribution" onerror="this.src='https://via.placeholder.com/1200x500/0f1626/7dd3fc?text=Temperature+Distribution'">
+          <div class="image-caption">Temperature field showing combustion zone and nozzle expansion cooling</div>
+        </div>
+
+        <h3>Velocity and Mach Number</h3>
+        <p>
+          Gas velocity at the nozzle exit reaches approximately 3,530 m/s, indicating highly efficient acceleration consistent with methane-oxygen propulsion systems. The velocity profile shows a sharp drop to 0 m/s near walls due to the no-slip boundary condition, creating a boundary layer where viscous effects are significant.
+        </p>
+
+        <p>
+          The Mach number distribution validates the nozzle design: Mach 1 is achieved at the throat (transition from subsonic to supersonic flow), and approximately Mach 3.94 at the exit. A numerical artifact showing unphysically high Mach numbers near walls was corrected by redefining Mach number as the ratio of local velocity to local speed of sound.
+        </p>
+
+        <div class="image-container">
+          <img src="images/mach-distribution.jpg" alt="Mach Number Distribution" onerror="this.src='https://via.placeholder.com/1200x500/0f1626/7dd3fc?text=Mach+Number+Distribution'">
+          <div class="image-caption">Corrected Mach number distribution showing supersonic expansion through nozzle</div>
+        </div>
+
+        <h3>Species Mass Fractions</h3>
+        <p>
+          The extremely low mass fractions of CH₄ (2.16×10⁻¹⁰) and O₂ (2.38×10⁻¹⁹) downstream of the combustion chamber clearly indicate highly efficient combustion. These near-negligible values demonstrate that fuel and oxidizer have been almost entirely consumed, confirming combustion effectiveness.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Primary Products</h4>
+            <ul>
+              <li><strong>H₂O:</strong> Major product (40-45% mass fraction)</li>
+              <li><strong>CO₂:</strong> Significant product (28-31% mass fraction)</li>
+              <li><strong>CO:</strong> Intermediate species (9-49% range)</li>
+              <li>CO gradually oxidizes to CO₂ near walls</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Minor Species</h4>
+            <ul>
+              <li><strong>Radicals:</strong> H, O, OH, HO₂, CH₃ present in trace amounts</li>
+              <li><strong>Intermediates:</strong> H₂, C₂H₆, CH₃OH in small quantities</li>
+              <li><strong>Distribution:</strong> Concentrated in reaction zones</li>
+              <li>Validate detailed chemical kinetics modeling</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/species-distribution.jpg" alt="Species Mass Fractions" onerror="this.src='https://via.placeholder.com/1200x700/0f1626/7dd3fc?text=Species+Distribution'">
+          <div class="image-caption">Mass fraction contours showing reactant consumption and product formation</div>
+        </div>
+
+        <h3>Performance Summary: 8 Simulation Cases</h3>
+        <p>
+          Eight simulations were conducted varying the O/F ratio (3.0 vs 3.6), chemical nature (pure propellants vs realistic FFSC preburner output), inlet temperatures (cryogenic liquid vs hot gas), and ambient conditions (vacuum vs sea level). This parametric study revealed the benefits of FFSC and the rationale behind SpaceX's design choices.
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Case 1</th>
+                <th>Case 4</th>
+                <th>Case 5</th>
+                <th>Case 8</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>O/F Ratio</td>
+                <td>3.0</td>
+                <td>3.6</td>
+                <td>3.0</td>
+                <td>3.6</td>
+              </tr>
+              <tr>
+                <td>Environment</td>
+                <td>Vacuum</td>
+                <td>Vacuum</td>
+                <td>Sea Level</td>
+                <td>Sea Level</td>
+              </tr>
+              <tr>
+                <td>Chamber Pressure (bar)</td>
+                <td>305</td>
+                <td>291</td>
+                <td>310</td>
+                <td>296</td>
+              </tr>
+              <tr>
+                <td>Thrust (MN)</td>
+                <td>2.56</td>
+                <td>2.51</td>
+                <td>2.41</td>
+                <td>2.35</td>
+              </tr>
+              <tr>
+                <td>Specific Impulse (s)</td>
+                <td>364.90</td>
+                <td>357.59</td>
+                <td>342.62</td>
+                <td>334.32</td>
+              </tr>
+              <tr>
+                <td>Exit Velocity (m/s)</td>
+                <td>3,530</td>
+                <td>3,460</td>
+                <td>3,500</td>
+                <td>3,420</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Discussion Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Analysis</div>
+        <h2>Discussion</h2>
+
+        <h3>Validation Against RPA and Raptor 2</h3>
+        <p>
+          The comparison between ANSYS CFD simulation results, RPA predictions, and actual Raptor 2 engine data reveals excellent agreement across all major performance metrics. Chamber pressure shows only 1.33% deviation from the nominal value, thrust differs by 2.17%, and specific impulse by 2.14% when compared to real engine data.
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Raptor 2 Actual</th>
+                <th>Our Simulation</th>
+                <th>Difference (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Chamber Pressure (bar)</td>
+                <td>300</td>
+                <td>296</td>
+                <td>1.33%</td>
+              </tr>
+              <tr>
+                <td>Sea Level Thrust (MN)</td>
+                <td>2.30</td>
+                <td>2.35</td>
+                <td>-2.17%</td>
+              </tr>
+              <tr>
+                <td>Sea Level Isp (s)</td>
+                <td>327</td>
+                <td>334</td>
+                <td>-2.14%</td>
+              </tr>
+              <tr>
+                <td>Exit Velocity (m/s)</td>
+                <td>~3,207</td>
+                <td>3,420</td>
+                <td>~6.6%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="highlight-box">
+          <h4>Why Our Results Are Slightly Higher</h4>
+          <p>
+            While our simulation shows marginally better performance than the real Raptor 2, this does not suggest our design is superior. The differences arise from idealized assumptions:
+          </p>
+          <ul>
+            <li><strong>No regenerative cooling:</strong> Real engines divert propellant through cooling channels, reducing combustion mass flow</li>
+            <li><strong>Adiabatic walls:</strong> No heat losses to engine structure</li>
+            <li><strong>Perfect mixing:</strong> Idealized injector uniformity</li>
+            <li><strong>No losses:</strong> Turbopump efficiency, boundary layer, and friction losses not included</li>
+          </ul>
+          <p>
+            SpaceX optimizes for reliability, durability, manufacturability, and safety margins rather than absolute theoretical efficiency.
+          </p>
+        </div>
+
+        <h3>Why Full-Flow Staged Combustion?</h3>
+        <p>
+          The performance comparison between simulation cases clearly demonstrates why SpaceX employs the FFSC cycle rather than simpler alternatives. Cases with cryogenic liquid propellants (simulations 2 and 6) showed significantly lower performance due to cold inlet temperatures and incomplete vaporization. Pure gaseous propellants at high temperature (simulations 3 and 7) showed improved performance but are physically unrealistic without preburning.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>FFSC Advantages</h4>
+            <ul>
+              <li>Complete propellant gasification before main chamber</li>
+              <li>Elevated inlet temperatures enable efficient combustion</li>
+              <li>Better turbine efficiency with lower temperature drops</li>
+              <li>Improved cooling via regenerative propellant routing</li>
+              <li>Higher chamber pressure capability</li>
+              <li>Enhanced thermal management</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Comparison to Other Cycles</h4>
+            <ul>
+              <li><strong>vs Gas Generator:</strong> No wasted propellant, higher Isp</li>
+              <li><strong>vs Single-Shaft SC:</strong> No inter-propellant seal, more uniform combustion</li>
+              <li><strong>Reusability:</strong> Up to 1000 flights targeted for Raptor</li>
+              <li><strong>Reliability:</strong> Lower turbine temperatures extend lifetime</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Why O/F = 3.6 Instead of 3.0?</h3>
+        <p>
+          Simulations clearly show that O/F = 3.0 provides superior performance: 6.63% higher vacuum thrust (2.57 MN vs 2.41 MN) and 6.11% higher specific impulse (364.9 s vs 342.6 s). However, SpaceX chose O/F = 3.6 for critical system-level reasons related to propellant storage and vehicle design.
+        </p>
+
+        <div class="highlight-box">
+          <h4>System-Level Trade-offs</h4>
+          <p>
+            <strong>Storage Considerations:</strong> A lower O/F ratio requires more methane storage. Since liquid methane has relatively low density (~422 kg/m³) compared to liquid oxygen (~1,141 kg/m³), this necessitates significantly larger and heavier methane tanks. Larger tanks require:
+          </p>
+          <ul>
+            <li>Increased structural mass for tank walls and supports</li>
+            <li>More insulation to maintain cryogenic temperatures</li>
+            <li>Complex pressurization and management systems</li>
+            <li>Greater internal volume reducing payload capacity</li>
+            <li>Challenges in vehicle layout and center of mass</li>
+          </ul>
+          <p>
+            <strong>Optimal Balance:</strong> O/F = 3.6 represents a well-balanced trade-off between engine performance, vehicle mass distribution, structural efficiency, reusability, and overall mission feasibility. The slight performance penalty is outweighed by dramatic improvements in vehicle design practicality.
+          </p>
+        </div>
+
+        <h3>Vacuum vs Sea Level Performance</h3>
+        <p>
+          The comparison between vacuum and sea-level conditions reveals fundamental rocket physics principles. Vacuum operation delivers 6.51% higher thrust (2.52 MN vs 2.35 MN) and correspondingly higher specific impulse due to more complete nozzle expansion without atmospheric back pressure.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Vacuum Conditions</h4>
+            <ul>
+              <li><strong>Thrust:</strong> 2.52 MN</li>
+              <li><strong>Isp:</strong> 357.6 s</li>
+              <li><strong>Exit velocity:</strong> 3,460 m/s</li>
+              <li><strong>Exit pressure:</strong> 25,100 Pa</li>
+              <li>No external resistance to flow expansion</li>
+              <li>Gases expand more fully</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Sea Level Conditions</h4>
+            <ul>
+              <li><strong>Thrust:</strong> 2.35 MN</li>
+              <li><strong>Isp:</strong> 334.3 s</li>
+              <li><strong>Exit velocity:</strong> 3,420 m/s</li>
+              <li><strong>Exit pressure:</strong> 25,400 Pa</li>
+              <li>Atmospheric pressure resists expansion</li>
+              <li>Slightly higher back pressure</li>
+            </ul>
+          </div>
+        </div>
+
+        <p>
+          These differences underscore why vacuum-specific performance metrics are always higher and why nozzle design involves trade-offs to optimize expansion across both sea-level and vacuum phases of flight. The Raptor 2's area ratio of 34.34 represents a compromise optimized for the full flight trajectory.
+        </p>
+      </div>
+    </section>
+
+    <!-- Technical Skills Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Competencies</div>
+        <h2>Skills & Technologies Applied</h2>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Thermodynamic Analysis</h4>
+            <ul>
+              <li>NASA CEA chemical equilibrium calculations</li>
+              <li>Rocket propulsion performance prediction</li>
+              <li>Ideal gas relationships and real gas effects</li>
+              <li>Energy balance and entropy analysis</li>
+              <li>Compressible flow theory</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>CFD & Numerical Methods</h4>
+            <ul>
+              <li>ANSYS Fluent turbulent reacting flow simulation</li>
+              <li>RANS equations with Favre averaging</li>
+              <li>k-ω SST turbulence modeling</li>
+              <li>Presumed PDF combustion modeling</li>
+              <li>Structured mesh generation techniques</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>Chemical Kinetics</h4>
+            <ul>
+              <li>Cantera Python library for combustion simulation</li>
+              <li>GRI-Mech 3.0 detailed chemistry (53 species, 325 reactions)</li>
+              <li>Species transport and diffusion modeling</li>
+              <li>Reaction rate calculations and equilibrium</li>
+              <li>Mixture fraction and PDF approaches</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>Rocket Propulsion Design</h4>
+            <ul>
+              <li>Rocket Propulsion Analysis (RPA) software</li>
+              <li>Nozzle design using Method of Characteristics</li>
+              <li>Injector sizing and pressure drop analysis</li>
+              <li>Thrust chamber performance optimization</li>
+              <li>FFSC cycle modeling and analysis</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>CAD & Geometry</h4>
+            <ul>
+              <li>SolidWorks 2D axisymmetric modeling</li>
+              <li>Parametric geometry creation</li>
+              <li>Injector plate design and layout</li>
+              <li>Technical drawing and dimensioning</li>
+              <li>Design optimization for CFD</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>Programming & Automation</h4>
+            <ul>
+              <li>Python for preburner simulation automation</li>
+              <li>Data processing and visualization</li>
+              <li>Custom GUI development for workflow</li>
+              <li>Post-processing script development</li>
+              <li>Parametric study automation</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conclusions Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Conclusions</div>
+        <h2>Key Findings & Future Work</h2>
+
+        <h3>Major Achievements</h3>
+        <ul>
+          <li><strong>High Fidelity Validation:</strong> Achieved <3% deviation from real Raptor 2 data across all major performance metrics (thrust, Isp, chamber pressure)</li>
+          <li><strong>Complete Combustion:</strong> Demonstrated near-complete reactant consumption with CH₄ and O₂ residuals below 10⁻¹⁰, validating combustion efficiency</li>
+          <li><strong>FFSC Benefits Confirmed:</strong> Clearly demonstrated advantages of full-flow staged combustion in efficiency, thermal management, and potential for reusability</li>
+          <li><strong>Design Rationale:</strong> Explained SpaceX's choice of O/F = 3.6 as a system-level optimization balancing performance with propellant storage practicality</li>
+          <li><strong>Multiphase Modeling:</strong> Successfully integrated preliminary design (CEA, RPA), preburner modeling (Cantera), and detailed CFD (ANSYS Fluent)</li>
+        </ul>
+
+        <h3>Engineering Contributions</h3>
+        <div class="grid-2">
+          <div class="card">
+            <h4>Methodological Contributions</h4>
+            <p>Established a robust workflow combining NASA CEA, RPA, Cantera, and ANSYS Fluent for high-fidelity rocket engine simulation. Demonstrated the importance of realistic preburner modeling for accurate FFSC engine predictions. Validated the use of GRI-Mech 3.0 with presumed PDF combustion for methalox propulsion systems.</p>
+          </div>
+          <div class="card">
+            <h4>Physical Insights</h4>
+            <p>Quantified the performance benefits of FFSC over simpler cycles. Explained system-level trade-offs in O/F ratio selection. Demonstrated critical importance of preburner outlet conditions on main chamber performance. Identified areas where simplified assumptions (adiabatic walls) impact results.</p>
+          </div>
+        </div>
+
+        <h3>Limitations & Assumptions</h3>
+        <div class="highlight-box">
+          <h4>Key Simplifications</h4>
+          <ul>
+            <li><strong>Adiabatic walls:</strong> No heat transfer to engine structure; real engines use regenerative cooling</li>
+            <li><strong>Steady-state:</strong> Transient effects during ignition, startup, and shutdown not captured</li>
+            <li><strong>2D axisymmetric:</strong> Three-dimensional effects and asymmetries neglected</li>
+            <li><strong>Simplified injectors:</strong> Detailed spray dynamics and atomization not fully resolved</li>
+            <li><strong>Perfect mixing:</strong> Injector-to-injector variations not modeled</li>
+            <li><strong>No structural coupling:</strong> Wall deformation and thermal expansion not included</li>
+          </ul>
+        </div>
+
+        <h3>Future Work Recommendations</h3>
+        <div class="timeline">
+          <div class="timeline-item">
+            <h4>Regenerative Cooling Integration</h4>
+            <p>Model coolant flow through chamber walls with conjugate heat transfer to evaluate thermal loading and chamber wall temperatures. This will provide more realistic performance predictions accounting for coolant extraction from main flow.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Transient Analysis</h4>
+            <p>Conduct time-dependent simulations to capture ignition dynamics, startup/shutdown sequences, and combustion instability phenomena. Critical for understanding engine control and safety margins.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>3D Modeling</h4>
+            <p>Implement full three-dimensional geometry to capture radial flow features, injector pattern effects, and potential asymmetries in the combustion chamber and nozzle.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Advanced Turbulence</h4>
+            <p>Employ Large Eddy Simulation (LES) or hybrid RANS-LES approaches to improve resolution of turbulent structures and better predict combustion-turbulence interactions.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Detailed Spray Modeling</h4>
+            <p>Implement Lagrangian particle tracking or Eulerian-Eulerian multiphase models to capture realistic injector spray, droplet breakup, and vaporization dynamics.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Combustion Instability</h4>
+            <p>Investigate acoustic modes and potential combustion instabilities through unsteady simulation and frequency domain analysis to ensure stable operation.</p>
+          </div>
+
+          <div class="timeline-item">
+            <h4>Experimental Validation</h4>
+            <p>Compare predictions with subscale test data when available to further validate modeling assumptions and refine simulation parameters for improved accuracy.</p>
+          </div>
+        </div>
+
+        <h3>Broader Impact</h3>
+        <p>
+          This research contributes to the growing body of knowledge required to design high-performance reusable rocket engines, with direct relevance to SpaceX's interplanetary transportation goals, including the colonization of Mars. It reinforces the importance of CFD as a critical tool in modern propulsion design, enabling cost-effective, accurate performance prediction ahead of experimental validation.
+        </p>
+
+        <p>
+          By closely reproducing the behavior of the Raptor 2 engine, this work supports ongoing efforts in the industry toward reusable, efficient, and high-performance engines—a key enabler of missions beyond Earth orbit. More broadly, it demonstrates the potential of student-led, high-fidelity CFD modeling in contributing meaningfully to aerospace propulsion research.
+        </p>
+
+        <div class="highlight-box">
+          <h4>Looking Forward</h4>
+          <p>
+            This project lays a strong foundation for future high-fidelity modeling of staged combustion engines and supports the evolution of next-generation aerospace propulsion systems. The methodology established here can be extended to other propellant combinations, engine cycles, and mission profiles, contributing to the advancement of space exploration capabilities.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Publications & References Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">References</div>
+        <h2>Key Sources & Tools</h2>
+
+        <h3>Software & Tools</h3>
+        <div class="grid-2">
+          <div class="card">
+            <h4>Primary Analysis Tools</h4>
+            <ul>
+              <li><strong>NASA CEA:</strong> Chemical Equilibrium with Applications for thermodynamic calculations</li>
+              <li><strong>RPA:</strong> Rocket Propulsion Analysis for geometry optimization</li>
+              <li><strong>Cantera:</strong> Open-source chemical kinetics library (Python)</li>
+              <li><strong>ANSYS Fluent:</strong> Commercial CFD software for reactive flow simulation</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Supporting Tools</h4>
+            <ul>
+              <li><strong>SolidWorks:</strong> CAD software for geometry creation</li>
+              <li><strong>Python:</strong> Custom automation and post-processing scripts</li>
+              <li><strong>GRI-Mech 3.0:</strong> Detailed chemical mechanism (53 species, 325 reactions)</li>
+              <li><strong>MATLAB:</strong> Data analysis and visualization</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Selected References</h3>
+        <ul>
+          <li>S. Gordon and B. J. McBride, <em>Computer Program for Calculation of Complex Chemical Equilibrium Compositions and Applications</em> (NASA RP-1311), NASA, 1996</li>
+          <li>A. Ponomarenko, <em>RPA: Design Tool for Liquid Rocket Engine Analysis</em>, 2009</li>
+          <li>D. G. Goodwin et al., <em>Cantera: An Object-Oriented Software Toolkit for Chemical Kinetics</em>, Version 3.0, 2023</li>
+          <li>G. P. Smith et al., "GRI-Mech 3.0: A detailed chemical kinetic mechanism for the combustion of hydrocarbon fuels," 1999</li>
+          <li>SpaceX, "Raptor Engine," <a href="https://www.spacex.com/vehicles/starship/" target="_blank">https://www.spacex.com/vehicles/starship/</a></li>
+          <li>Wikipedia contributors, "Full-flow staged combustion cycle," Wikipedia</li>
+          <li>Everyday Astronaut, "Raptor 1 vs Raptor 2: What did SpaceX change?" Jul. 14, 2022</li>
+        </ul>
+
+        <div class="highlight-box">
+          <h4>Full Technical Report</h4>
+          <p>
+            The complete technical report including detailed methodology, mathematical derivations, mesh specifications, and comprehensive results is available on ResearchGate.
+          </p>
+          <div style="margin-top: 1.5rem; text-align: center;">
+            <a href="https://www.researchgate.net/publication/394009342_Advanced_CFD_Simulation_of_Internal_Flow_Dynamics_in_the_Raptor_2_Combustion_Chamber_and_Nozzle_by_YAZIDI_Hamza" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 0.75rem 2rem; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border-radius: 999px; font-weight: 600; text-decoration: none; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 4px 15px rgba(125, 211, 252, 0.3);">
+              📄 View Project Report
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>© 2025 Yazid Hamza - Mechanical & Aerospace Engineer | Advanced CFD Research</p>
+    </div>
+  </footer>
+</body>
+</html>

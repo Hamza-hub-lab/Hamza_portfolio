@@ -1,0 +1,1066 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Surveillance Drone Project | Yazid Hamza</title>
+  <meta name="description" content="Integrated development of a fixed-wing surveillance drone - Sizing, multi-tool simulation and experimental validation." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Grotesk:wght@400;600;700&family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg-dark: #000000;
+      --bg-light: #ffffff;
+      --panel: #0f1626;
+      --text-dark: #e8eefc;
+      --text-light: #1a1a1a;
+      --muted-dark: rgba(232,238,252,.72);
+      --muted-light: rgba(26,26,26,.65);
+      --line-dark: rgba(232,238,252,.12);
+      --line-light: rgba(26,26,26,.12);
+
+      --accent: #7dd3fc;
+      --accent2:#a78bfa;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --shadow: 0 12px 40px rgba(0,0,0,.35);
+
+      --radius: 18px;
+      --max: 1100px;
+
+      --font-sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --font-display: "Space Grotesk", var(--font-sans);
+
+      --section-pad: clamp(70px, 7vw, 110px);
+    }
+
+    *{ box-sizing: border-box; }
+    html{ scroll-behavior: smooth; }
+    body{
+      margin: 0;
+      color: var(--text-light);
+      background: var(--bg-light);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+    }
+
+    a{ color: inherit; text-decoration: none; }
+    a:hover{ opacity: .9; }
+
+    .container{
+      width: min(var(--max), calc(100% - 2rem));
+      margin-inline: auto;
+    }
+
+    /* Header */
+    .header{
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,.95);
+      border-bottom: 1px solid var(--line-light);
+    }
+    .nav{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .9rem 0;
+      gap: 1rem;
+    }
+    .brand{
+      display: inline-flex;
+      align-items: center;
+      gap: .8rem;
+      font-family: var(--font-display);
+      letter-spacing: -0.02em;
+      font-size: 1.1rem;
+      color: var(--text-light);
+    }
+    .back-btn{
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .55rem .85rem;
+      border-radius: 999px;
+      border: 1px solid var(--line-light);
+      background: rgba(26,26,26,.02);
+      color: var(--text-light);
+      font-size: .95rem;
+      font-weight: 600;
+      transition: all .2s ease;
+    }
+    .back-btn:hover{
+      background: rgba(125,211,252,.1);
+      border-color: var(--accent);
+      transform: translateX(-2px);
+    }
+
+    /* Hero Section */
+    .hero-project{
+      padding: 4rem 0 3rem;
+      background: linear-gradient(180deg, rgba(125,211,252,.08), transparent);
+      border-bottom: 1px solid var(--line-light);
+    }
+    .hero-project h1{
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.15;
+      margin: 0;
+      letter-spacing: -0.03em;
+      color: var(--text-light);
+    }
+    .hero-project .meta{
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .meta-item{
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .95rem;
+      color: var(--muted-light);
+    }
+    .meta-item strong{
+      color: var(--text-light);
+      font-weight: 600;
+    }
+
+    /* Content Sections */
+    .section{
+      padding: var(--section-pad) 0;
+      border-bottom: 1px solid var(--line-light);
+    }
+    .section:last-of-type{
+      border-bottom: none;
+    }
+
+    .eyebrow{
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      font-size: .9rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted-light);
+      margin-bottom: 1rem;
+    }
+    .eyebrow::before{
+      content:"";
+      width: 26px;
+      height: 1px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: .9;
+    }
+
+    h2{
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 2.3vw, 2.15rem);
+      line-height: 1.2;
+      margin: 0 0 1.5rem;
+      letter-spacing: -0.02em;
+      color: var(--text-light);
+    }
+
+    h3{
+      font-family: var(--font-display);
+      font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+      line-height: 1.3;
+      margin: 2rem 0 1rem;
+      letter-spacing: -0.01em;
+      color: var(--text-light);
+    }
+
+    p{
+      margin: 1rem 0;
+      color: var(--text-light);
+      max-width: 75ch;
+    }
+
+    /* Image Container */
+    .image-container{
+      margin: 2rem 0;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--line-light);
+      background: rgba(26,26,26,.02);
+      box-shadow: 0 8px 30px rgba(0,0,0,.1);
+    }
+    .image-container img{
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .image-caption{
+      padding: 1rem 1.2rem;
+      background: rgba(26,26,26,.03);
+      font-size: .9rem;
+      color: var(--muted-light);
+      border-top: 1px solid var(--line-light);
+    }
+
+    /* Grid Layouts */
+    .grid-2{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .card{
+      border-radius: var(--radius);
+      border: 1px solid var(--line-light);
+      background: rgba(26,26,26,.02);
+      padding: 1.5rem;
+      transition: transform .3s ease, box-shadow .3s ease;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0,0,0,.12);
+    }
+    .card h4{
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin: 0 0 .8rem;
+      color: var(--text-light);
+    }
+    .card p{
+      margin: 0;
+      font-size: .95rem;
+    }
+
+    /* Stats/Numbers */
+    .stats-grid{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .stat-card{
+      border-radius: var(--radius);
+      border: 1px solid var(--line-light);
+      background: linear-gradient(135deg, rgba(125,211,252,.08), rgba(167,139,250,.06));
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .stat-value{
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: .5rem;
+    }
+    .stat-label{
+      font-size: .9rem;
+      color: var(--muted-light);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    /* List Styles */
+    ul, ol{
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+    }
+    li{
+      margin: .5rem 0;
+      color: var(--text-light);
+    }
+    li strong{
+      color: var(--accent);
+    }
+
+    /* Table */
+    .table-container{
+      overflow-x: auto;
+      margin: 2rem 0;
+      border-radius: var(--radius);
+      border: 1px solid var(--line-light);
+    }
+    table{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .95rem;
+    }
+    th{
+      background: rgba(125,211,252,.1);
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--line-light);
+      color: var(--text-light);
+    }
+    td{
+      padding: 1rem;
+      border-bottom: 1px solid var(--line-light);
+      color: var(--text-light);
+    }
+    tr:last-child td{
+      border-bottom: none;
+    }
+
+    /* Highlight Box */
+    .highlight-box{
+      border-radius: var(--radius);
+      border: 1px solid var(--accent);
+      background: rgba(125,211,252,.08);
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+    .highlight-box h4{
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin: 0 0 1rem;
+      color: var(--accent);
+    }
+    .highlight-box p{
+      margin: .5rem 0;
+    }
+
+    /* Process/Timeline */
+    .timeline{
+      position: relative;
+      padding-left: 2rem;
+      margin: 2rem 0;
+    }
+    .timeline::before{
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--accent), var(--accent2));
+    }
+    .timeline-item{
+      position: relative;
+      padding-bottom: 2rem;
+    }
+    .timeline-item::before{
+      content: '';
+      position: absolute;
+      left: -2.45rem;
+      top: .3rem;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg-light);
+    }
+    .timeline-item h4{
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin: 0 0 .5rem;
+      color: var(--text-light);
+    }
+    .timeline-item p{
+      margin: .3rem 0;
+      font-size: .95rem;
+    }
+
+    /* Footer */
+    footer{
+      padding: 2rem 0;
+      border-top: 1px solid var(--line-light);
+      background: var(--bg-light);
+      text-align: center;
+      color: var(--muted-light);
+      font-size: .9rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px){
+      .stats-grid{
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .grid-2{
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      html{ scroll-behavior: auto; }
+      *{ transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header Navigation -->
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <a class="brand" href="../index.html">Yazid Hamza</a>
+        <a class="back-btn" href="../index.html#academic-projects">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          Back to Portfolio
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-project">
+    <div class="container">
+      <h1>Integrated Development of a Fixed-Wing Surveillance Drone</h1>
+      <div class="meta">
+        <div class="meta-item">
+          <strong>Type:</strong> Academic Project
+        </div>
+        <div class="meta-item">
+          <strong>Duration:</strong> 2025/2026
+        </div>
+        <div class="meta-item">
+          <strong>Team:</strong> 4 Members
+        </div>
+        <div class="meta-item">
+          <strong>Tools:</strong> XFLR5, CATIA V5, MATLAB/Simulink, FlightGear
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Overview Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Overview</div>
+        <h2>Project Summary</h2>
+        <p>
+          This comprehensive project focused on the complete development cycle of a fixed-wing surveillance drone, from initial concept through aerodynamic sizing, multi-tool simulation, structural design, control system development, to physical fabrication and flight testing. The project integrated advanced engineering disciplines including aerodynamics, flight mechanics, control theory, and manufacturing.
+        </p>
+
+        <div class="image-container">
+          <img src="images/drone-overview.jpg" alt="Surveillance Drone Overview" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Drone+Overview+Image'">
+          <div class="image-caption">Complete fixed-wing surveillance drone assembly</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">1.8m</div>
+            <div class="stat-label">Wingspan</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">2.5kg</div>
+            <div class="stat-label">MTOW</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">45min</div>
+            <div class="stat-label">Endurance</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">18m/s</div>
+            <div class="stat-label">Cruise Speed</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Objectives Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Mission</div>
+        <h2>Project Objectives</h2>
+        
+        <div class="grid-2">
+          <div class="card">
+            <h4>🎯 Primary Objectives</h4>
+            <ul>
+              <li>Design a fixed-wing UAV for surveillance missions</li>
+              <li>Optimize aerodynamic performance and efficiency</li>
+              <li>Develop robust flight control systems</li>
+              <li>Validate designs through simulation and testing</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>📊 Performance Requirements</h4>
+            <ul>
+              <li>Flight endurance: 45+ minutes</li>
+              <li>Cruise speed: 15-20 m/s</li>
+              <li>Operational altitude: up to 200m AGL</li>
+              <li>Payload capacity: surveillance camera system</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="highlight-box">
+          <h4>Mission Profile</h4>
+          <p>The drone was designed for surveillance missions requiring sustained loiter capability, stable platform for camera operation, and efficient cruise flight. The design prioritized endurance and stability over speed and maneuverability.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Methodology Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Process</div>
+        <h2>Development Methodology</h2>
+        
+        <div class="timeline">
+          <div class="timeline-item">
+            <h4>Phase 1: Preliminary Sizing</h4>
+            <p><strong>Objective:</strong> Determine optimal aircraft parameters using constraint analysis and matching diagrams</p>
+            <p>Estimated MTOW, wing area, and required power through iterative calculations considering mission requirements</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 2: Wing Design</h4>
+            <p><strong>Airfoil Selection:</strong> NACA 4418 chosen for favorable lift characteristics at low Reynolds numbers</p>
+            <p>Optimized wing geometry including aspect ratio, taper ratio, sweep angle, and dihedral angle</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 3: Empennage Sizing</h4>
+            <p><strong>Stability Analysis:</strong> Designed horizontal and vertical tail surfaces for static and dynamic stability</p>
+            <p>Calculated tail volume coefficients and moment arms using statistical and analytical methods</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 4: Aerodynamic Simulation</h4>
+            <p><strong>CFD Analysis:</strong> XFLR5 simulations for performance prediction and aerodynamic validation</p>
+            <p>Generated lift, drag, and moment polars for complete aircraft configuration</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 5: Control System Development</h4>
+            <p><strong>LQR Controller:</strong> Developed Linear Quadratic Regulator for longitudinal stability augmentation</p>
+            <p>MATLAB/Simulink modeling with FlightGear visualization for real-time simulation</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 6: CAD Design & Manufacturing</h4>
+            <p><strong>3D Modeling:</strong> Complete CATIA V5 model with detailed component design</p>
+            <p>Foam wing construction using hot-wire cutting, assembly, and electronics integration</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 7: Testing & Validation</h4>
+            <p><strong>Ground & Flight Tests:</strong> Progressive testing approach from bench tests to flight attempts</p>
+            <p>Analysis of flight test results and identification of critical design factors</p>
+          </div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/methodology-diagram.jpg" alt="Development Methodology Flow" onerror="this.src='https://via.placeholder.com/1200x400/0f1626/7dd3fc?text=Methodology+Diagram'">
+          <div class="image-caption">Complete development cycle from concept to flight testing</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Aerodynamic Design Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Aerodynamics</div>
+        <h2>Aerodynamic Design & Analysis</h2>
+
+        <h3>Wing Configuration</h3>
+        <p>
+          The wing design process began with comprehensive constraint analysis to determine the optimal wing loading (W/S) and thrust-to-weight ratio (T/W). Using matching diagrams, we identified the design point that satisfied all performance requirements including takeoff distance, cruise speed, climb rate, and turning performance.
+        </p>
+
+        <div class="image-container">
+          <img src="images/matching-diagram.jpg" alt="Wing Loading Matching Diagram" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Matching+Diagram'">
+          <div class="image-caption">Constraint analysis and matching diagram for optimal wing sizing</div>
+        </div>
+
+        <h3>Airfoil Selection: NACA 4418</h3>
+        <div class="grid-2">
+          <div class="card">
+            <h4>Geometric Characteristics</h4>
+            <ul>
+              <li><strong>Maximum Camber:</strong> 4% at 40% chord</li>
+              <li><strong>Thickness:</strong> 18% of chord</li>
+              <li><strong>Type:</strong> Low-speed, high-lift profile</li>
+              <li><strong>Reynolds Number:</strong> Optimized for Re ≈ 200,000</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Performance Benefits</h4>
+            <ul>
+              <li>High maximum lift coefficient (CL,max ≈ 1.6)</li>
+              <li>Gentle stall characteristics</li>
+              <li>Good L/D ratio at cruise conditions</li>
+              <li>Suitable for slow, stable surveillance flight</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/naca4418-profile.jpg" alt="NACA 4418 Airfoil Profile" onerror="this.src='https://via.placeholder.com/1200x400/0f1626/7dd3fc?text=NACA+4418+Profile'">
+          <div class="image-caption">NACA 4418 airfoil geometry and pressure distribution</div>
+        </div>
+
+        <h3>Wing Geometric Parameters</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+                <th>Rationale</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Wingspan (b)</td>
+                <td>1.8 m</td>
+                <td>Optimized for endurance and structural feasibility</td>
+              </tr>
+              <tr>
+                <td>Wing Area (S)</td>
+                <td>0.36 m²</td>
+                <td>Determined from W/S constraint analysis</td>
+              </tr>
+              <tr>
+                <td>Aspect Ratio (AR)</td>
+                <td>9.0</td>
+                <td>High AR for reduced induced drag</td>
+              </tr>
+              <tr>
+                <td>Taper Ratio (λ)</td>
+                <td>0.6</td>
+                <td>Balance between efficiency and stability</td>
+              </tr>
+              <tr>
+                <td>Sweep Angle (Λ)</td>
+                <td>0°</td>
+                <td>No sweep needed for subsonic flight</td>
+              </tr>
+              <tr>
+                <td>Dihedral Angle (Γ)</td>
+                <td>3°</td>
+                <td>Lateral stability enhancement</td>
+              </tr>
+              <tr>
+                <td>Incidence Angle</td>
+                <td>2°</td>
+                <td>Optimized for cruise AoA</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="image-container">
+          <img src="images/wing-geometry.jpg" alt="Wing Geometry and Planform" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Wing+Geometry'">
+          <div class="image-caption">Complete wing geometry showing planform, taper, and dihedral</div>
+        </div>
+
+        <h3>Empennage Design</h3>
+        <p>
+          The tail surfaces were sized using volume coefficient methods combined with stability derivative analysis. Both horizontal and vertical stabilizers were optimized to provide adequate static margin while minimizing weight and drag penalties.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Horizontal Stabilizer</h4>
+            <ul>
+              <li><strong>Volume Coefficient:</strong> 0.5</li>
+              <li><strong>Surface Area:</strong> 0.12 m²</li>
+              <li><strong>Moment Arm:</strong> 0.85 m</li>
+              <li><strong>Function:</strong> Longitudinal stability & pitch control</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Vertical Stabilizer</h4>
+            <ul>
+              <li><strong>Volume Coefficient:</strong> 0.04</li>
+              <li><strong>Surface Area:</strong> 0.08 m²</li>
+              <li><strong>Moment Arm:</strong> 0.85 m</li>
+              <li><strong>Function:</strong> Directional stability & yaw control</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/empennage-design.jpg" alt="Empennage Configuration" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Empennage+Design'">
+          <div class="image-caption">Horizontal and vertical stabilizer geometry and positioning</div>
+        </div>
+
+        <h3>XFLR5 Aerodynamic Analysis</h3>
+        <p>
+          Comprehensive CFD simulations were performed using XFLR5 to validate the aerodynamic design and generate performance data for the complete aircraft configuration. The analysis included:
+        </p>
+        <ul>
+          <li>2D airfoil analysis for pressure distributions and boundary layer characteristics</li>
+          <li>3D wing analysis including induced drag and span loading</li>
+          <li>Complete aircraft simulation with wing-body-tail interactions</li>
+          <li>Stability derivative calculations for control system design</li>
+        </ul>
+
+        <div class="image-container">
+          <img src="images/xflr5-analysis.jpg" alt="XFLR5 Simulation Results" onerror="this.src='https://via.placeholder.com/1200x800/0f1626/7dd3fc?text=XFLR5+Analysis'">
+          <div class="image-caption">XFLR5 visualization showing pressure distribution and streamlines</div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/lift-drag-polar.jpg" alt="Lift-Drag Polar Curves" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Lift-Drag+Polar'">
+          <div class="image-caption">Aerodynamic polars showing CL vs CD and L/D ratio across angle of attack range</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Control Systems Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Control</div>
+        <h2>Flight Control System Development</h2>
+
+        <h3>LQR Controller Design</h3>
+        <p>
+          A Linear Quadratic Regulator (LQR) was developed for longitudinal stability augmentation and trajectory tracking. The controller was designed using state-space representation of the aircraft dynamics, with careful tuning of the cost function matrices to balance performance and control effort.
+        </p>
+
+        <div class="highlight-box">
+          <h4>Control System Architecture</h4>
+          <p>The control system consists of multiple layers: inner loop for stability augmentation using LQR, middle loop for attitude control, and outer loop for trajectory tracking. The system was designed to maintain stable flight and recover from disturbances while following commanded flight paths.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>State Variables</h4>
+            <ul>
+              <li>Forward velocity (u)</li>
+              <li>Vertical velocity (w)</li>
+              <li>Pitch rate (q)</li>
+              <li>Pitch angle (θ)</li>
+              <li>Altitude (h)</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Control Inputs</h4>
+            <ul>
+              <li>Elevator deflection (δe)</li>
+              <li>Thrust setting (δT)</li>
+              <li>Feedback gains optimized via LQR</li>
+              <li>Integral action for steady-state tracking</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/control-block-diagram.jpg" alt="Control System Block Diagram" onerror="this.src='https://via.placeholder.com/1200x500/0f1626/7dd3fc?text=Control+Block+Diagram'">
+          <div class="image-caption">Complete control system architecture showing LQR feedback loops</div>
+        </div>
+
+        <h3>MATLAB/Simulink Simulation</h3>
+        <p>
+          The complete flight dynamics and control system were implemented in MATLAB/Simulink, including:
+        </p>
+        <ul>
+          <li>6-DOF rigid body equations of motion</li>
+          <li>Aerodynamic force and moment models based on XFLR5 data</li>
+          <li>Propulsion system model with thrust and power characteristics</li>
+          <li>LQR control law implementation with gain scheduling</li>
+          <li>Sensor models and actuator dynamics</li>
+        </ul>
+
+        <div class="image-container">
+          <img src="images/simulink-model.jpg" alt="Simulink Model" onerror="this.src='https://via.placeholder.com/1200x700/0f1626/7dd3fc?text=Simulink+Model'">
+          <div class="image-caption">Complete Simulink model showing flight dynamics and control implementation</div>
+        </div>
+
+        <h3>FlightGear Integration</h3>
+        <p>
+          Real-time visualization of simulation results was achieved through integration with FlightGear flight simulator. This provided valuable insight into the aircraft's behavior and allowed for evaluation of control system performance in a realistic visual environment.
+        </p>
+
+        <div class="image-container">
+          <img src="images/flightgear-simulation.jpg" alt="FlightGear Visualization" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=FlightGear+Visualization'">
+          <div class="image-caption">Real-time FlightGear visualization of simulated flight trajectory</div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/control-response.jpg" alt="Control System Response" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Control+Response+Plots'">
+          <div class="image-caption">Simulation results showing altitude tracking and pitch response with LQR control</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAD & Manufacturing Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Manufacturing</div>
+        <h2>CAD Design & Physical Fabrication</h2>
+
+        <h3>CATIA V5 3D Modeling</h3>
+        <p>
+          Complete 3D CAD model was developed in CATIA V5, including all structural components, control surfaces, and systems integration. The model served both for design validation and as a blueprint for manufacturing.
+        </p>
+
+        <div class="image-container">
+          <img src="images/catia-model.jpg" alt="CATIA V5 3D Model" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=CATIA+3D+Model'">
+          <div class="image-caption">Complete CATIA V5 assembly showing all components</div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Major Components</h4>
+            <ul>
+              <li>Wing structure with internal reinforcements</li>
+              <li>Fuselage with electronics bay</li>
+              <li>Empennage assembly</li>
+              <li>Landing gear integration</li>
+              <li>Motor mount and propulsion system</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Design Features</h4>
+            <ul>
+              <li>Modular design for easy assembly/disassembly</li>
+              <li>Integrated servo mounts for control surfaces</li>
+              <li>Cable routing and wire management</li>
+              <li>Camera bay with vibration dampening</li>
+              <li>Battery compartment with CG consideration</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/catia-exploded.jpg" alt="Exploded View Assembly" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Exploded+View'">
+          <div class="image-caption">Exploded view showing assembly sequence and component relationships</div>
+        </div>
+
+        <h3>Manufacturing Process</h3>
+        <div class="timeline">
+          <div class="timeline-item">
+            <h4>Wing Fabrication</h4>
+            <p>Wings constructed using expanded polystyrene (EPS) foam shaped with CNC hot-wire cutter following NACA 4418 profile. Carbon fiber spars added for structural reinforcement.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Fuselage Construction</h4>
+            <p>Fuselage built using lightweight balsa wood framework with foam core, covered with heat-shrink film for aerodynamic smoothness and protection.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Control Surface Installation</h4>
+            <p>Ailerons, elevator, and rudder cut from wing/tail sections and connected via hinges. Servo motors installed with linkages for precise control surface actuation.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Systems Integration</h4>
+            <p>Installation of flight controller, ESC, receiver, servos, battery, and wiring. Careful attention to weight distribution to achieve proper center of gravity location.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Final Assembly & Finishing</h4>
+            <p>Complete aircraft assembly with final adjustments. Application of protective coatings and surface finish. Installation of surveillance camera payload.</p>
+          </div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/wing-cutting.jpg" alt="Hot Wire Wing Cutting" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Wing+Cutting+Process'">
+          <div class="image-caption">CNC hot-wire foam cutting process for wing construction</div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/assembly-progress.jpg" alt="Assembly Progress" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Assembly+Progress'">
+          <div class="image-caption">Progressive assembly stages from components to complete aircraft</div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/final-drone.jpg" alt="Completed Drone" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Completed+Drone'">
+          <div class="image-caption">Completed surveillance drone ready for ground testing</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testing & Results Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Validation</div>
+        <h2>Testing & Results</h2>
+
+        <h3>Ground Testing</h3>
+        <p>
+          Comprehensive ground tests were conducted to validate all systems before flight attempts:
+        </p>
+        <ul>
+          <li><strong>Control Surface Check:</strong> Verified proper servo operation and control surface deflections</li>
+          <li><strong>CG Verification:</strong> Confirmed center of gravity within acceptable range (25-30% MAC)</li>
+          <li><strong>Motor/Propulsion Test:</strong> Validated thrust output and battery endurance</li>
+          <li><strong>Systems Integration:</strong> Tested communication between flight controller, receiver, and actuators</li>
+          <li><strong>Pre-flight Checklist:</strong> Systematic verification of all critical parameters</li>
+        </ul>
+
+        <div class="image-container">
+          <img src="images/ground-testing.jpg" alt="Ground Testing" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Ground+Testing'">
+          <div class="image-caption">Pre-flight ground testing and systems validation</div>
+        </div>
+
+        <h3>Flight Testing</h3>
+        <p>
+          Flight testing revealed critical insights into the practical challenges of fixed-wing UAV operation. While the aircraft exhibited good aerodynamic characteristics based on simulations, several factors contributed to difficulties during actual flight:
+        </p>
+
+        <div class="highlight-box">
+          <h4>Key Observations</h4>
+          <ul>
+            <li><strong>Launch Phase:</strong> Hand-launch technique required significant practice and coordination</li>
+            <li><strong>Stability:</strong> Aircraft showed sensitivity to CG position and trim settings</li>
+            <li><strong>Control Response:</strong> Need for careful gain tuning to avoid PIO (Pilot Induced Oscillations)</li>
+            <li><strong>Environmental Factors:</strong> Wind conditions significantly affected flight characteristics</li>
+          </ul>
+        </div>
+
+        <div class="image-container">
+          <img src="images/flight-attempt.jpg" alt="Flight Testing" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Flight+Testing'">
+          <div class="image-caption">Flight testing and launch attempts</div>
+        </div>
+
+        <h3>Lessons Learned</h3>
+        <div class="grid-2">
+          <div class="card">
+            <h4>Technical Insights</h4>
+            <ul>
+              <li>Importance of precise CG location</li>
+              <li>Need for extensive ground testing</li>
+              <li>Critical role of structural rigidity</li>
+              <li>Value of progressive testing approach</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Operational Lessons</h4>
+            <ul>
+              <li>Pilot training and experience crucial</li>
+              <li>Environmental assessment essential</li>
+              <li>Backup systems and redundancy important</li>
+              <li>Iterative refinement necessary</li>
+            </ul>
+          </div>
+        </div>
+
+        <p>
+          While the flight testing phase encountered challenges, these provided invaluable learning experiences. The crash analysis revealed specific areas for improvement in future iterations, particularly regarding structural reinforcement, control system tuning, and pre-flight procedures.
+        </p>
+      </div>
+    </section>
+
+    <!-- Technical Skills Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Competencies</div>
+        <h2>Skills & Technologies Applied</h2>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Aerodynamic Analysis</h4>
+            <ul>
+              <li>Aircraft preliminary sizing methodologies</li>
+              <li>Constraint analysis and matching diagrams</li>
+              <li>Airfoil selection and optimization</li>
+              <li>CFD simulation with XFLR5</li>
+              <li>Stability and control derivatives</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>Flight Dynamics & Control</h4>
+            <ul>
+              <li>6-DOF equations of motion</li>
+              <li>State-space system modeling</li>
+              <li>LQR optimal control design</li>
+              <li>MATLAB/Simulink implementation</li>
+              <li>FlightGear integration</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>Mechanical Design</h4>
+            <ul>
+              <li>CATIA V5 3D modeling</li>
+              <li>Structural design and sizing</li>
+              <li>Material selection for aerospace</li>
+              <li>Assembly design and integration</li>
+              <li>Technical drawing and documentation</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>Manufacturing & Testing</h4>
+            <ul>
+              <li>Composite fabrication techniques</li>
+              <li>CNC hot-wire foam cutting</li>
+              <li>Systems integration and wiring</li>
+              <li>Ground testing procedures</li>
+              <li>Flight test methodology</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conclusions Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Conclusions</div>
+        <h2>Project Outcomes & Future Perspectives</h2>
+
+        <h3>Key Achievements</h3>
+        <ul>
+          <li><strong>Complete Development Cycle:</strong> Successfully navigated all phases from concept through design, simulation, fabrication, to testing</li>
+          <li><strong>Multidisciplinary Integration:</strong> Effectively combined aerodynamics, structures, controls, and manufacturing</li>
+          <li><strong>Advanced Simulation:</strong> Developed comprehensive computational models validated through multiple software tools</li>
+          <li><strong>Practical Experience:</strong> Gained hands-on experience with real-world engineering constraints and challenges</li>
+          <li><strong>Team Collaboration:</strong> Coordinated effectively across multiple engineering disciplines</li>
+        </ul>
+
+        <h3>Engineering Contributions</h3>
+        <div class="grid-2">
+          <div class="card">
+            <h4>Theoretical Contributions</h4>
+            <p>Comprehensive application of aircraft design methodologies, stability analysis, and control theory. Development of integrated simulation framework combining aerodynamic, dynamic, and control models.</p>
+          </div>
+          <div class="card">
+            <h4>Practical Contributions</h4>
+            <p>Demonstration of complete UAV development process from concept to hardware. Identification of critical factors in fixed-wing UAV design and operational considerations.</p>
+          </div>
+        </div>
+
+        <h3>Future Improvements</h3>
+        <div class="highlight-box">
+          <h4>Recommended Enhancements</h4>
+          <ul>
+            <li><strong>Structural Optimization:</strong> FEA analysis for weight reduction while maintaining strength</li>
+            <li><strong>Advanced Control:</strong> Implementation of adaptive control and disturbance rejection</li>
+            <li><strong>Sensor Integration:</strong> Addition of IMU, GPS, and airspeed sensors for autonomous flight</li>
+            <li><strong>Wind Tunnel Testing:</strong> Experimental validation of aerodynamic predictions</li>
+            <li><strong>Flight Envelope Expansion:</strong> Progressive flight testing to explore full performance capability</li>
+            <li><strong>Autonomy Features:</strong> Waypoint navigation and automatic landing systems</li>
+          </ul>
+        </div>
+
+        <h3>Perspectives</h3>
+        <p>
+          This project represents a comprehensive learning experience in aerospace engineering, demonstrating the integration of theoretical knowledge with practical application. The challenges encountered during testing phase provided valuable insights often absent from pure simulation work.
+        </p>
+        <p>
+          The methodology developed and lessons learned form a solid foundation for future UAV development projects. The modular design approach and systematic testing procedures established can be applied to more advanced aircraft designs with enhanced capabilities.
+        </p>
+
+        <div class="image-container">
+          <img src="images/team-photo.jpg" alt="Project Team" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Project+Team'">
+          <div class="image-caption">Project team: ENNIBAN Moadh, GARMOUM Mohammed, RAHMANI Abderrahman, YAZIDI Hamza</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>© 2026 Yazid Hamza - Mechanical & Aerospace Engineer</p>
+    </div>
+  </footer>
+</body>
+</html>

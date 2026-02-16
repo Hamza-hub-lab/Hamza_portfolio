@@ -1,0 +1,1384 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FSI Wing Analysis | Yazid Hamza</title>
+  <meta name="description" content="Advanced fluid-structure interaction analysis of drone wing using ANSYS Fluent and Mechanical - One-way coupling CFD and structural simulation." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Grotesk:wght@400;600;700&family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg-dark: #000000;
+      --bg-light: #ffffff;
+      --panel: #0f1626;
+      --text-dark: #e8eefc;
+      --text-light: #1a1a1a;
+      --muted-dark: rgba(232,238,252,.72);
+      --muted-light: rgba(26,26,26,.65);
+      --line-dark: rgba(232,238,252,.12);
+      --line-light: rgba(26,26,26,.12);
+
+      --accent: #7dd3fc;
+      --accent2:#a78bfa;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --shadow: 0 12px 40px rgba(0,0,0,.35);
+
+      --radius: 18px;
+      --max: 1100px;
+
+      --font-sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --font-display: "Space Grotesk", var(--font-sans);
+
+      --section-pad: clamp(70px, 7vw, 110px);
+    }
+
+    *{ box-sizing: border-box; }
+    html{ scroll-behavior: smooth; }
+    body{
+      margin: 0;
+      color: var(--text-light);
+      background: var(--bg-light);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+    }
+
+    a{ color: inherit; text-decoration: none; }
+    a:hover{ opacity: .9; }
+
+    .container{
+      width: min(var(--max), calc(100% - 2rem));
+      margin-inline: auto;
+    }
+
+    /* Header */
+    .header{
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,.95);
+      border-bottom: 1px solid var(--line-light);
+    }
+    .nav{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .9rem 0;
+      gap: 1rem;
+    }
+    .brand{
+      display: inline-flex;
+      align-items: center;
+      gap: .8rem;
+      font-family: var(--font-display);
+      letter-spacing: -0.02em;
+      font-size: 1.1rem;
+      color: var(--text-light);
+    }
+    .back-btn{
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .55rem .85rem;
+      border-radius: 999px;
+      border: 1px solid var(--line-light);
+      background: rgba(26,26,26,.02);
+      color: var(--text-light);
+      font-size: .95rem;
+      font-weight: 600;
+      transition: all .2s ease;
+    }
+    .back-btn:hover{
+      background: rgba(125,211,252,.1);
+      border-color: var(--accent);
+      transform: translateX(-2px);
+    }
+
+    /* Hero Section */
+    .hero-project{
+      padding: 4rem 0 3rem;
+      background: linear-gradient(180deg, rgba(125,211,252,.08), transparent);
+      border-bottom: 1px solid var(--line-light);
+    }
+    .hero-project h1{
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.15;
+      margin: 0;
+      letter-spacing: -0.03em;
+      color: var(--text-light);
+    }
+    .hero-project .meta{
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .meta-item{
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .95rem;
+      color: var(--muted-light);
+    }
+    .meta-item strong{
+      color: var(--text-light);
+      font-weight: 600;
+    }
+
+    /* Content Sections */
+    .section{
+      padding: var(--section-pad) 0;
+      border-bottom: 1px solid var(--line-light);
+    }
+    .section:last-of-type{
+      border-bottom: none;
+    }
+
+    .eyebrow{
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      font-size: .9rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted-light);
+      margin-bottom: 1rem;
+    }
+    .eyebrow::before{
+      content:"";
+      width: 26px;
+      height: 1px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: .9;
+    }
+
+    h2{
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 2.3vw, 2.15rem);
+      line-height: 1.2;
+      margin: 0 0 1.5rem;
+      letter-spacing: -0.02em;
+      color: var(--text-light);
+    }
+
+    h3{
+      font-family: var(--font-display);
+      font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+      line-height: 1.3;
+      margin: 2rem 0 1rem;
+      letter-spacing: -0.01em;
+      color: var(--text-light);
+    }
+
+    h4{
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin: 1.5rem 0 .8rem;
+      color: var(--text-light);
+    }
+
+    p{
+      margin: 1rem 0;
+      color: var(--text-light);
+      max-width: 75ch;
+    }
+
+    /* Image Container */
+    .image-container{
+      margin: 2rem 0;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--line-light);
+      background: rgba(26,26,26,.02);
+      box-shadow: 0 8px 30px rgba(0,0,0,.1);
+    }
+    .image-container img{
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .image-caption{
+      padding: 1rem 1.2rem;
+      background: rgba(26,26,26,.03);
+      font-size: .9rem;
+      color: var(--muted-light);
+      border-top: 1px solid var(--line-light);
+    }
+
+    /* Grid Layouts */
+    .grid-2{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .card{
+      border-radius: var(--radius);
+      border: 1px solid var(--line-light);
+      background: rgba(26,26,26,.02);
+      padding: 1.5rem;
+      transition: transform .3s ease, box-shadow .3s ease;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0,0,0,.12);
+    }
+    .card h4{
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin: 0 0 .8rem;
+      color: var(--text-light);
+    }
+    .card p{
+      margin: 0;
+      font-size: .95rem;
+    }
+
+    /* Stats/Numbers */
+    .stats-grid{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .stat-card{
+      border-radius: var(--radius);
+      border: 1px solid var(--line-light);
+      background: linear-gradient(135deg, rgba(125,211,252,.08), rgba(167,139,250,.06));
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .stat-value{
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: .5rem;
+    }
+    .stat-label{
+      font-size: .9rem;
+      color: var(--muted-light);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    /* List Styles */
+    ul, ol{
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+    }
+    li{
+      margin: .5rem 0;
+      color: var(--text-light);
+    }
+    li strong{
+      color: var(--accent);
+    }
+
+    /* Table */
+    .table-container{
+      overflow-x: auto;
+      margin: 2rem 0;
+      border-radius: var(--radius);
+      border: 1px solid var(--line-light);
+    }
+    table{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .95rem;
+    }
+    th{
+      background: rgba(125,211,252,.1);
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--line-light);
+      color: var(--text-light);
+    }
+    td{
+      padding: 1rem;
+      border-bottom: 1px solid var(--line-light);
+      color: var(--text-light);
+    }
+    tr:last-child td{
+      border-bottom: none;
+    }
+
+    /* Highlight Box */
+    .highlight-box{
+      border-radius: var(--radius);
+      border: 1px solid var(--accent);
+      background: rgba(125,211,252,.08);
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+    .highlight-box h4{
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin: 0 0 1rem;
+      color: var(--accent);
+    }
+    .highlight-box p{
+      margin: .5rem 0;
+    }
+
+    /* Equation Box */
+    .equation-box{
+      border-radius: var(--radius);
+      border: 1px solid var(--line-light);
+      background: rgba(167,139,250,.05);
+      padding: 1.5rem;
+      margin: 2rem 0;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+
+    /* Process/Timeline */
+    .timeline{
+      position: relative;
+      padding-left: 2rem;
+      margin: 2rem 0;
+    }
+    .timeline::before{
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--accent), var(--accent2));
+    }
+    .timeline-item{
+      position: relative;
+      padding-bottom: 2rem;
+    }
+    .timeline-item::before{
+      content: '';
+      position: absolute;
+      left: -2.45rem;
+      top: .3rem;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg-light);
+    }
+    .timeline-item h4{
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin: 0 0 .5rem;
+      color: var(--text-light);
+    }
+    .timeline-item p{
+      margin: .3rem 0;
+      font-size: .95rem;
+    }
+
+    /* Footer */
+    footer{
+      padding: 2rem 0;
+      border-top: 1px solid var(--line-light);
+      background: var(--bg-light);
+      text-align: center;
+      color: var(--muted-light);
+      font-size: .9rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px){
+      .stats-grid{
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .grid-2{
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      html{ scroll-behavior: auto; }
+      *{ transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header Navigation -->
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <a class="brand" href="../index.html">Yazid Hamza</a>
+        <a class="back-btn" href="../index.html#academic-projects">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          Back to Portfolio
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-project">
+    <div class="container">
+      <h1>Fluid-Structure Interaction Analysis of Drone Wing</h1>
+      <div class="meta">
+        <div class="meta-item">
+          <strong>Type:</strong> Academic Lab Project
+        </div>
+        <div class="meta-item">
+          <strong>Duration:</strong> 2 Days
+        </div>
+        <div class="meta-item">
+          <strong>Team:</strong> 2 Members
+        </div>
+        <div class="meta-item">
+          <strong>Tools:</strong> ANSYS Fluent, ANSYS Mechanical, ANSYS Workbench
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Abstract Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Overview</div>
+        <h2>Project Summary</h2>
+        <p>
+          This project presents a comprehensive numerical study of fluid-structure interaction (FSI) applied to a drone wing subjected to aerodynamic loads. The study employs a one-way coupling methodology using ANSYS Workbench, where CFD analysis in ANSYS Fluent provides pressure distributions that are then transferred to ANSYS Mechanical for structural analysis. This approach enables evaluation of wing deformation and stress under realistic flight conditions.
+        </p>
+
+        <div class="image-container">
+          <img src="images/fsi-workflow.jpg" alt="FSI Workflow in ANSYS Workbench" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=FSI+Workflow'">
+          <div class="image-caption">Complete FSI workflow: CFD simulation coupled with structural analysis in ANSYS Workbench</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">70 m/s</div>
+            <div class="stat-label">Flow Velocity</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">15°</div>
+            <div class="stat-label">Angle of Attack</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">1.16 MPa</div>
+            <div class="stat-label">Max von Mises Stress</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">0.1 mm</div>
+            <div class="stat-label">Max Deformation</div>
+          </div>
+        </div>
+
+        <h3>Key Objectives</h3>
+        <div class="grid-2">
+          <div class="card">
+            <h4>🎯 Primary Goals</h4>
+            <ul>
+              <li>Perform CFD analysis of airflow around drone wing</li>
+              <li>Calculate aerodynamic pressure distribution</li>
+              <li>Transfer loads to structural analysis</li>
+              <li>Evaluate wing deformation and stress levels</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>📊 Technical Achievements</h4>
+            <ul>
+              <li>Converged CFD solution with k-ω SST turbulence model</li>
+              <li>Lift coefficient: CL = 1.36</li>
+              <li>Drag coefficient: CD = -0.22</li>
+              <li>Safety factor: 241 (extremely conservative)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Introduction Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Context</div>
+        <h2>Introduction & Motivation</h2>
+        
+        <p>
+          Fluid-structure interaction (FSI) represents a fundamental research domain in aeronautical engineering, particularly crucial for studying wing behavior under aerodynamic loads. When fluid flows around a flexible structure like an aircraft wing, the generated pressures induce deformations which, in turn, modify the fluid flow. This bidirectional interaction can have significant consequences on aircraft performance, stability, and safety.
+        </p>
+
+        <p>
+          In the context of fixed-wing drone design, understanding FSI phenomena becomes crucial for optimizing structure while ensuring mechanical resistance. Drones, due to their lightweight nature and operational versatility, are particularly sensitive to aerodynamic loads during surveillance, transport, or observation missions. Precise modeling of structural response under aerodynamic loading enables not only design validation but also identification of critical zones requiring reinforcement or optimization.
+        </p>
+
+        <div class="highlight-box">
+          <h4>Project Scope</h4>
+          <p>
+            This work presents a complete numerical study of drone wing behavior subjected to aerodynamic loads. The adopted approach relies on a one-way coupling methodology using ANSYS Workbench platform. First, a CFD (Computational Fluid Dynamics) simulation is performed in ANSYS Fluent to determine pressure distribution around the wing at incidence. Results from this simulation are then transferred to ANSYS Mechanical to perform static structural analysis, thus evaluating induced deformations and stresses.
+          </p>
+        </div>
+
+        <h3>Why Fluid-Structure Interaction?</h3>
+        <p>
+          FSI analysis is essential in aerospace engineering for several critical reasons:
+        </p>
+        <ul>
+          <li><strong>Performance Optimization:</strong> Understanding how aerodynamic forces deform the wing allows engineers to predict actual flight characteristics</li>
+          <li><strong>Safety Assessment:</strong> Identifying stress concentrations helps prevent structural failures during flight</li>
+          <li><strong>Weight Reduction:</strong> Accurate load prediction enables optimal material distribution, reducing unnecessary weight</li>
+          <li><strong>Flutter Prevention:</strong> FSI analysis helps predict and avoid dangerous aeroelastic phenomena</li>
+          <li><strong>Design Validation:</strong> Virtual testing reduces the need for expensive physical prototypes</li>
+        </ul>
+
+        <div class="image-container">
+          <img src="images/fsi-concept.jpg" alt="FSI Concept Diagram" onerror="this.src='https://via.placeholder.com/1200x500/0f1626/7dd3fc?text=FSI+Concept'">
+          <div class="image-caption">Conceptual diagram showing bidirectional coupling between fluid and structure domains</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Methodology Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Approach</div>
+        <h2>Methodology</h2>
+        
+        <p>
+          The study employs a systematic two-phase approach: computational fluid dynamics analysis followed by structural analysis. This one-way coupling methodology provides an efficient first approximation of FSI effects while maintaining reasonable computational costs.
+        </p>
+
+        <div class="timeline">
+          <div class="timeline-item">
+            <h4>Phase 1: Geometry Preparation</h4>
+            <p><strong>CAD Modeling:</strong> Wing geometry created in CAD software and imported into ANSYS</p>
+            <p>Fluid domain created using Enclosure tool with sufficient margins upstream, downstream, and laterally to avoid boundary influence on flow. Domain dimensions: 300mm upstream, 250mm downstream, 250mm lateral, 200mm vertical.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 2: CFD Mesh Generation</h4>
+            <p><strong>Strategy:</strong> Fine mesh near wing surface, coarser mesh in far-field</p>
+            <p>Used Patch Conforming method with tetrahedral elements. Body sizing for wing: 5×10⁻³ m, Face sizing for inlet/outlet: 1×10⁻² m. Quadratic elements for improved accuracy. Total mesh: refined around wing to capture pressure gradients.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 3: CFD Simulation Setup</h4>
+            <p><strong>Solver:</strong> ANSYS Fluent with density-based solver</p>
+            <p>Steady-state RANS equations with k-ω SST turbulence model. Inlet velocity: 70 m/s at 15° angle of attack. Outlet: pressure outlet at 0 Pa gauge. Wing surface: no-slip wall boundary condition.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 4: CFD Solution & Convergence</h4>
+            <p><strong>Iterations:</strong> 1000 iterations to achieve convergence</p>
+            <p>Monitored residuals (continuity, momentum, turbulence) all below 10⁻³. Additional monitoring of outlet pressure, velocity, mass flow rate, and aerodynamic coefficients to ensure stable solution. Computation time: approximately 2.5 hours.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Phase 5: Pressure Data Transfer</h4>
+            <p><strong>One-Way Coupling:</strong> CFD results exported to Mechanical</p>
+            <p>Pressure distribution from converged CFD solution transferred to ANSYS Mechanical as "Imported Pressure". This enables structural analysis with realistic aerodynamic loading without iterative coupling.</p>
+          </div>
+
+          <div class="timeline-item">
+            <h4>Phase 6: Structural Mesh Generation</h4>
+            <p><strong>FEM Discretization:</strong> Structural mesh for wing geometry</p>
+            <p>Automatic meshing with Body Sizing control (5×10⁻³ m). Quadratic tetrahedral elements for accurate stress and deformation predictions. Refined mesh in areas of expected stress concentration.</p>
+          </div>
+
+          <div class="timeline-item">
+            <h4>Phase 7: Structural Analysis Setup</h4>
+            <p><strong>Material:</strong> Aluminum alloy (E=71 GPa, ν=0.33, σy=280 MPa)</p>
+            <p>Boundary conditions: Fixed support (encastrement) at wing root representing fuselage attachment. Applied imported pressure on all wing surfaces from CFD solution.</p>
+          </div>
+
+          <div class="timeline-item">
+            <h4>Phase 8: Structural Solution & Results</h4>
+            <p><strong>FEM Solution:</strong> Static structural analysis</p>
+            <p>Computed total deformation field and von Mises equivalent stress distribution. Identified maximum stress locations and deformation patterns. Evaluated safety factors against material yield strength.</p>
+          </div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/methodology-flow.jpg" alt="Detailed Methodology Flowchart" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Methodology+Flow'">
+          <div class="image-caption">Detailed flowchart showing complete FSI analysis methodology from geometry to results</div>
+        </div>
+
+        <h3>Governing Equations</h3>
+        
+        <h4>CFD Equations (RANS)</h4>
+        <p>
+          The flow is modeled using Reynolds-Averaged Navier-Stokes (RANS) equations. For steady, incompressible flow:
+        </p>
+        
+        <div class="highlight-box">
+          <h4>Continuity Equation</h4>
+          <p style="text-align: center; font-family: 'Courier New', monospace;">∇ · u = 0</p>
+          <p>where <strong>u</strong> is the velocity vector (m/s)</p>
+        </div>
+
+        <div class="highlight-box">
+          <h4>Momentum Equation</h4>
+          <p style="text-align: center; font-family: 'Courier New', monospace;">∂(ρu)/∂t + ∇·(ρu⊗u) = -∇p + ∇·τ + ρg</p>
+          <p>where <strong>p</strong> is pressure (Pa), <strong>τ</strong> is viscous stress tensor, <strong>ρ</strong> is density (kg/m³)</p>
+        </div>
+
+        <div class="highlight-box">
+          <h4>k-ω SST Turbulence Model</h4>
+          <p>Two-equation model combining k-ε advantages in free stream with k-ω near walls:</p>
+          <ul style="font-size: 0.9rem;">
+            <li><strong>k equation:</strong> Transport equation for turbulent kinetic energy</li>
+            <li><strong>ω equation:</strong> Transport equation for specific dissipation rate</li>
+            <li>Turbulent viscosity: μt = ρa₁k/max(a₁ω, ΩF₂)</li>
+          </ul>
+        </div>
+
+        <h4>Structural Equations (FEM)</h4>
+        <p>
+          The structural analysis solves the equilibrium equations using Finite Element Method:
+        </p>
+
+        <div class="highlight-box">
+          <h4>Equilibrium Equation</h4>
+          <p style="text-align: center; font-family: 'Courier New', monospace;">∇·σ + f = 0</p>
+          <p>where <strong>σ</strong> is the Cauchy stress tensor, <strong>f</strong> is body force vector</p>
+        </div>
+
+        <div class="highlight-box">
+          <h4>Strain-Displacement Relation</h4>
+          <p style="text-align: center; font-family: 'Courier New', monospace;">ε = ½[∇u + (∇u)ᵀ]</p>
+          <p>where <strong>ε</strong> is strain tensor, <strong>u</strong> is displacement vector</p>
+        </div>
+
+        <div class="highlight-box">
+          <h4>Hooke's Law (Linear Elasticity)</h4>
+          <p style="text-align: center; font-family: 'Courier New', monospace;">σ = C : ε</p>
+          <p>where <strong>C</strong> is the fourth-order elasticity tensor depending on E (Young's modulus) and ν (Poisson's ratio)</p>
+        </div>
+
+        <div class="highlight-box">
+          <h4>von Mises Equivalent Stress</h4>
+          <p style="text-align: center; font-family: 'Courier New', monospace;">σvm = √[½((σ₁-σ₂)² + (σ₂-σ₃)² + (σ₃-σ₁)²)]</p>
+          <p>Used to assess plastic yielding in ductile materials like aluminum</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CFD Analysis Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Aerodynamics</div>
+        <h2>CFD Analysis Results</h2>
+
+        <h3>Computational Domain & Mesh</h3>
+        <p>
+          The fluid domain was created around the wing using the Enclosure tool with dimensions ensuring far-field boundaries don't influence the flow. The wing is positioned with sufficient clearance: 300mm upstream, 250mm downstream, and 250mm on lateral sides.
+        </p>
+
+        <div class="image-container">
+          <img src="images/fluid-domain.jpg" alt="Fluid Domain Around Wing" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Fluid+Domain'">
+          <div class="image-caption">Computational fluid domain showing wing placement within enclosure</div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Mesh Parameters</h4>
+            <ul>
+              <li><strong>Method:</strong> Patch Conforming</li>
+              <li><strong>Element type:</strong> Tetrahedrons (quadratic)</li>
+              <li><strong>Wing body sizing:</strong> 5×10⁻³ m</li>
+              <li><strong>Inlet/Outlet sizing:</strong> 1×10⁻² m</li>
+              <li><strong>Face meshing:</strong> 39 mapped faces</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Boundary Conditions</h4>
+            <ul>
+              <li><strong>Inlet:</strong> Velocity 70 m/s at 15° AoA</li>
+              <li><strong>Outlet:</strong> Pressure outlet (0 Pa gauge)</li>
+              <li><strong>Wing surface:</strong> No-slip wall</li>
+              <li><strong>Fluid:</strong> Air (ρ = 1.225 kg/m³)</li>
+              <li><strong>Turbulence intensity:</strong> 5%</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/cfd-mesh.jpg" alt="CFD Mesh Detail" onerror="this.src='https://via.placeholder.com/1200x700/0f1626/7dd3fc?text=CFD+Mesh'">
+          <div class="image-caption">Mesh refinement near wing surface showing boundary layer resolution</div>
+        </div>
+
+        <h3>Convergence & Solution Quality</h3>
+        <p>
+          The simulation was run for 1000 iterations using a density-based solver with the k-ω SST turbulence model. All residuals achieved satisfactory convergence levels, with continuity residual reaching 1.39×10⁻⁴ and momentum residuals below 1.58×10⁻⁶.
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Target</th>
+                <th>Achieved</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Continuity Residual</td>
+                <td>10⁻³</td>
+                <td>1.39 × 10⁻⁴</td>
+              </tr>
+              <tr>
+                <td>Momentum Residuals</td>
+                <td>10⁻³</td>
+                <td>1.58 × 10⁻⁶</td>
+              </tr>
+              <tr>
+                <td>Turbulence k</td>
+                <td>10⁻³</td>
+                <td>6.29 × 10⁻⁶</td>
+              </tr>
+              <tr>
+                <td>Turbulence ω</td>
+                <td>10⁻³</td>
+                <td>1.78 × 10⁻⁶</td>
+              </tr>
+              <tr>
+                <td>Outlet Pressure</td>
+                <td>0 Pa</td>
+                <td>Converged</td>
+              </tr>
+              <tr>
+                <td>Outlet Velocity</td>
+                <td>70 m/s</td>
+                <td>Converged</td>
+              </tr>
+              <tr>
+                <td>Mass Flow Rate</td>
+                <td>Steady</td>
+                <td>-26.54 kg/s</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="image-container">
+          <img src="images/convergence-history.jpg" alt="Convergence History" onerror="this.src='https://via.placeholder.com/1200x500/0f1626/7dd3fc?text=Convergence+History'">
+          <div class="image-caption">Residual convergence history showing all variables reaching target levels</div>
+        </div>
+
+        <h3>Aerodynamic Results</h3>
+        <p>
+          The converged CFD solution provides detailed pressure distribution on the wing surface. The results show characteristic high-lift behavior with clear pressure differential between upper (suction) and lower (pressure) surfaces.
+        </p>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">1.36</div>
+            <div class="stat-label">Lift Coefficient (CL)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">-0.22</div>
+            <div class="stat-label">Drag Coefficient (CD)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">6.18</div>
+            <div class="stat-label">Lift-to-Drag Ratio</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">5050 Pa</div>
+            <div class="stat-label">Max Total Pressure</div>
+          </div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/pressure-distribution.jpg" alt="Pressure Distribution on Wing" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Pressure+Distribution'">
+          <div class="image-caption">Static, total, and dynamic pressure distributions showing characteristic lift generation</div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Pressure Type</th>
+                <th>Minimum (Pa)</th>
+                <th>Maximum (Pa)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Static Pressure</td>
+                <td>-3,130</td>
+                <td>2,950</td>
+              </tr>
+              <tr>
+                <td>Dynamic Pressure</td>
+                <td>1,300</td>
+                <td>4,990</td>
+              </tr>
+              <tr>
+                <td>Total Pressure</td>
+                <td>1,100</td>
+                <td>5,050</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="highlight-box">
+          <h4>Key Observations</h4>
+          <ul>
+            <li><strong>High Lift Generation:</strong> CL = 1.36 indicates strong lift production at 15° angle of attack</li>
+            <li><strong>Pressure Distribution:</strong> Clear suction peak on upper surface near leading edge</li>
+            <li><strong>Flow Quality:</strong> No signs of flow separation or stall at this angle of attack</li>
+            <li><strong>Maximum Pressure:</strong> 5050 Pa total pressure used as loading for structural analysis</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Structural Analysis Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Structure</div>
+        <h2>Structural Analysis Results</h2>
+
+        <h3>Material Properties & Setup</h3>
+        <p>
+          For structural analysis, an aluminum alloy was selected from ANSYS Engineering Data. This material provides an excellent strength-to-weight ratio commonly used in aerospace applications.
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Value</th>
+                <th>Unit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Density (ρ)</td>
+                <td>2,770</td>
+                <td>kg/m³</td>
+              </tr>
+              <tr>
+                <td>Young's Modulus (E)</td>
+                <td>71</td>
+                <td>GPa</td>
+              </tr>
+              <tr>
+                <td>Poisson's Ratio (ν)</td>
+                <td>0.33</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>Shear Modulus (G)</td>
+                <td>26.7</td>
+                <td>GPa</td>
+              </tr>
+              <tr>
+                <td>Yield Strength (σy)</td>
+                <td>280</td>
+                <td>MPa</td>
+              </tr>
+              <tr>
+                <td>Ultimate Strength (σu)</td>
+                <td>310</td>
+                <td>MPa</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Boundary Conditions & Loading</h3>
+        <p>
+          The structural model uses realistic boundary conditions to simulate wing attachment to fuselage and application of aerodynamic loads from CFD analysis.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Fixed Support (Encastrement)</h4>
+            <ul>
+              <li>Applied at wing root surface</li>
+              <li>All degrees of freedom constrained</li>
+              <li>Simulates rigid attachment to fuselage</li>
+              <li>Represents realistic mounting condition</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Imported Pressure Loading</h4>
+            <ul>
+              <li>Source: Converged CFD solution from Fluent</li>
+              <li>Applied to all wing surfaces (17 faces)</li>
+              <li>Pressure range: 0.47 to 2,345 Pa</li>
+              <li>Realistic aerodynamic load distribution</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="image-container">
+          <img src="images/boundary-conditions.jpg" alt="Structural Boundary Conditions" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Boundary+Conditions'">
+          <div class="image-caption">Fixed support at wing root and imported pressure distribution from CFD</div>
+        </div>
+
+        <h3>Mesh Quality</h3>
+        <p>
+          The structural mesh was generated using automatic method with Body Sizing control to ensure adequate element density for accurate stress predictions.
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Meshing Method</td>
+                <td>Automatic</td>
+              </tr>
+              <tr>
+                <td>Element Order</td>
+                <td>Quadratic</td>
+              </tr>
+              <tr>
+                <td>Element Type</td>
+                <td>Tetrahedrons</td>
+              </tr>
+              <tr>
+                <td>Body Sizing</td>
+                <td>5×10⁻³ m</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="image-container">
+          <img src="images/structural-mesh.jpg" alt="Structural Mesh" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Structural+Mesh'">
+          <div class="image-caption">Quadratic tetrahedral mesh for structural analysis with refined density</div>
+        </div>
+
+        <h3>Deformation Results</h3>
+        <p>
+          Total deformation shows characteristic cantilever beam behavior with maximum displacement at the wing tip, furthest from the fixed support at the root.
+        </p>
+
+        <div class="image-container">
+          <img src="images/total-deformation.jpg" alt="Total Deformation" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Total+Deformation'">
+          <div class="image-caption">Total deformation field showing maximum 0.1 mm deflection at wing tip</div>
+        </div>
+
+        <h3>Stress Distribution</h3>
+        <p>
+          Von Mises equivalent stress distribution identifies critical stress regions. Maximum stress occurs near the wing root where bending moments are highest.
+        </p>
+
+        <div class="image-container">
+          <img src="images/von-mises-stress.jpg" alt="Von Mises Stress Distribution" onerror="this.src='https://via.placeholder.com/1200x600/0f1626/7dd3fc?text=Von+Mises+Stress'">
+          <div class="image-caption">Von Mises equivalent stress showing maximum 1.16 MPa near fixed support</div>
+        </div>
+
+        <h3>Summary of Results</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+                <th>Comment</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Maximum Deformation</td>
+                <td>0.1 mm</td>
+                <td>At wing tip - very small deflection</td>
+              </tr>
+              <tr>
+                <td>Maximum von Mises Stress</td>
+                <td>1.16 MPa</td>
+                <td>Near wing root attachment</td>
+              </tr>
+              <tr>
+                <td>Yield Strength</td>
+                <td>280 MPa</td>
+                <td>Material limit</td>
+              </tr>
+              <tr>
+                <td>Safety Factor</td>
+                <td>241</td>
+                <td>Extremely conservative (over-designed)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="highlight-box">
+          <h4>Key Findings</h4>
+          <ul>
+            <li><strong>Extremely Low Stress Levels:</strong> Maximum stress of 1.16 MPa is only 0.41% of material yield strength</li>
+            <li><strong>Minimal Deformation:</strong> 0.1 mm maximum deflection indicates very high structural rigidity</li>
+            <li><strong>Safety Factor of 241:</strong> Indicates significant over-design with current solid wing configuration</li>
+            <li><strong>Stress Concentration:</strong> Maximum stress located at wing root as expected from beam theory</li>
+            <li><strong>Mass Optimization Potential:</strong> Results suggest substantial weight reduction possible through structural optimization</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Discussion Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Analysis</div>
+        <h2>Discussion & Interpretation</h2>
+
+        <h3>Structural Response Analysis</h3>
+        <p>
+          The structural analysis reveals a highly conservative design with stress levels far below material limits. While this ensures structural integrity, it also indicates significant potential for weight optimization.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Positive Aspects</h4>
+            <ul>
+              <li>Excellent structural safety margin</li>
+              <li>Minimal deformation under design loads</li>
+              <li>No risk of yielding or plastic deformation</li>
+              <li>Stress distribution follows expected patterns</li>
+              <li>CFD-to-FEM coupling workflow validated</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Areas for Improvement</h4>
+            <ul>
+              <li>Solid wing geometry unrealistic for aviation</li>
+              <li>Excessive safety factor indicates over-design</li>
+              <li>Mass could be significantly reduced</li>
+              <li>One-way coupling doesn't capture FSI feedback</li>
+              <li>Static analysis misses dynamic effects</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Limitations of Current Model</h3>
+        <p>
+          The current study, while technically sound, has several important limitations that should be acknowledged:
+        </p>
+
+        <div class="highlight-box">
+          <h4>Modeling Assumptions</h4>
+          <ul>
+            <li><strong>Solid Wing Geometry:</strong> Real aircraft wings use lightweight structures with ribs, spars, and thin skin - not solid material</li>
+            <li><strong>One-Way Coupling:</strong> Aerodynamic loads affect structure, but structural deformation doesn't feed back to fluid simulation</li>
+            <li><strong>Static Analysis:</strong> Dynamic effects, vibrations, and transient phenomena not captured</li>
+            <li><strong>Material Homogeneity:</strong> Assumes uniform material properties throughout wing</li>
+            <li><strong>Linear Elasticity:</strong> No consideration of material nonlinearities or large deformations</li>
+          </ul>
+        </div>
+
+        <h3>Real-World Wing Structures</h3>
+        <p>
+          Actual aircraft and drone wings employ sophisticated lightweight structures that achieve optimal strength-to-weight ratios. The extremely low stress levels (1.16 MPa vs 280 MPa limit) obtained in this study clearly demonstrate that a solid wing structure is impractical.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>Typical Wing Construction</h4>
+            <ul>
+              <li><strong>Skin:</strong> Thin outer shell (0.5-2mm) carrying aerodynamic loads</li>
+              <li><strong>Ribs:</strong> Maintain airfoil shape and transfer loads to spars</li>
+              <li><strong>Spars:</strong> Main longitudinal members resisting bending</li>
+              <li><strong>Stringers:</strong> Longitudinal stiffeners preventing buckling</li>
+              <li><strong>Result:</strong> 70-90% weight reduction vs solid structure</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Benefits of Proper Design</h4>
+            <ul>
+              <li>Dramatic mass reduction without sacrificing strength</li>
+              <li>Improved fuel efficiency and flight endurance</li>
+              <li>Better payload capacity</li>
+              <li>Optimized material utilization</li>
+              <li>Lower manufacturing costs (less material)</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>One-Way vs Two-Way Coupling</h3>
+        <p>
+          This study employed one-way coupling where fluid forces affect structure but structural deformation doesn't modify the flow. While computationally efficient, this approach has limitations:
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Aspect</th>
+                <th>One-Way Coupling (Used)</th>
+                <th>Two-Way Coupling</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Computational Cost</td>
+                <td>Low - single CFD + single FEM</td>
+                <td>High - multiple iterations required</td>
+              </tr>
+              <tr>
+                <td>Accuracy</td>
+                <td>Good for small deformations</td>
+                <td>Excellent for all deformation levels</td>
+              </tr>
+              <tr>
+                <td>Phenomena Captured</td>
+                <td>Static load effects only</td>
+                <td>Dynamic coupling, flutter, divergence</td>
+              </tr>
+              <tr>
+                <td>Use Cases</td>
+                <td>Preliminary design, rigid structures</td>
+                <td>Final design, flexible structures</td>
+              </tr>
+              <tr>
+                <td>Convergence</td>
+                <td>Always converges</td>
+                <td>May require stabilization techniques</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="highlight-box">
+          <h4>When One-Way Coupling is Sufficient</h4>
+          <p>Our approach is justified because:</p>
+          <ul>
+            <li>Maximum deformation (0.1 mm) is negligible compared to chord length (~200 mm) - only 0.05%</li>
+            <li>Such small deformations have minimal effect on aerodynamic flow field</li>
+            <li>Stress levels well within elastic range - no material nonlinearities</li>
+            <li>Provides efficient preliminary assessment for design validation</li>
+          </ul>
+          <p>However, two-way coupling would be necessary for:</p>
+          <ul>
+            <li>Large deflections (>1% of characteristic dimension)</li>
+            <li>Flutter analysis and dynamic aeroelastic phenomena</li>
+            <li>Highly flexible structures (composite wings, membrane structures)</li>
+            <li>Final design validation before manufacturing</li>
+          </ul>
+        </div>
+
+        <h3>Practical Implications</h3>
+        <p>
+          The safety factor of 241 indicates the current design could support loads 241 times higher before reaching yield strength. This suggests several practical improvements:
+        </p>
+
+        <ul>
+          <li><strong>Structural Optimization:</strong> Replace solid wing with lightweight structure (ribs + spars + skin) to reduce mass by 70-90%</li>
+          <li><strong>Material Selection:</strong> Could potentially use lighter materials (composites, foam core) while maintaining adequate strength</li>
+          <li><strong>Topology Optimization:</strong> Use computational methods to identify optimal material distribution</li>
+          <li><strong>Weight Reduction Benefits:</strong> Improved endurance, higher payload capacity, better fuel efficiency</li>
+          <li><strong>Cost Reduction:</strong> Less material usage reduces manufacturing costs</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Conclusions Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Conclusions</div>
+        <h2>Key Findings & Future Work</h2>
+
+        <h3>Summary of Achievements</h3>
+        <p>
+          This study successfully demonstrated a complete FSI analysis workflow for a drone wing using ANSYS Workbench. The one-way coupling methodology proved effective for preliminary structural assessment under aerodynamic loading.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>CFD Results</h4>
+            <ul>
+              <li>Converged solution after 1000 iterations</li>
+              <li>Lift coefficient CL = 1.36 at 15° AoA</li>
+              <li>Drag coefficient CD = -0.22</li>
+              <li>Realistic pressure distribution obtained</li>
+              <li>k-ω SST turbulence model performed well</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Structural Results</h4>
+            <ul>
+              <li>Maximum stress: 1.16 MPa (0.41% of yield)</li>
+              <li>Maximum deformation: 0.1 mm at tip</li>
+              <li>Safety factor: 241 (highly conservative)</li>
+              <li>Stress concentration at wing root as expected</li>
+              <li>Successful load transfer from CFD to FEM</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Key Lessons Learned</h3>
+        <div class="highlight-box">
+          <h4>Technical Insights</h4>
+          <ul>
+            <li><strong>FSI Workflow Validation:</strong> ANSYS Workbench provides efficient platform for coupled analysis</li>
+            <li><strong>Mesh Quality Critical:</strong> Refined mesh near wing surface essential for accurate pressure prediction</li>
+            <li><strong>Convergence Monitoring:</strong> Multiple parameters (residuals, forces, mass flow) should be tracked</li>
+            <li><strong>One-Way Coupling Sufficient:</strong> For small deformations (<1%), one-way coupling provides good approximation</li>
+            <li><strong>Solid Geometry Limitation:</strong> Real wing structures require rib-spar-skin construction for optimal weight</li>
+            <li><strong>Over-Design Identified:</strong> Extreme safety factor indicates need for structural optimization</li>
+          </ul>
+        </div>
+
+        <h3>Limitations & Considerations</h3>
+        <ul>
+          <li><strong>Simplified Geometry:</strong> Solid wing doesn't represent realistic aviation structure</li>
+          <li><strong>Static Analysis Only:</strong> Dynamic effects, vibrations, and transient phenomena not captured</li>
+          <li><strong>Linear Material Model:</strong> No consideration of plasticity or material nonlinearities</li>
+          <li><strong>One-Way Coupling:</strong> Structural deformation doesn't feed back to modify flow field</li>
+          <li><strong>Single Load Case:</strong> Only 15° angle of attack analyzed - flight envelope study needed</li>
+          <li><strong>No Manufacturing Constraints:</strong> Design doesn't consider fabrication limitations or assembly</li>
+        </ul>
+
+        <h3>Recommendations for Future Work</h3>
+        
+        <div class="timeline">
+          <div class="timeline-item">
+            <h4>Realistic Wing Structure Design</h4>
+            <p>Replace solid geometry with lightweight structure incorporating ribs, spars, stringers, and thin skin. This is the most important improvement for practical application.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Two-Way FSI Coupling</h4>
+            <p>Implement bidirectional coupling where structural deformation updates fluid domain geometry. Essential for flexible wing analysis and flutter prediction.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Dynamic Analysis</h4>
+            <p>Perform transient structural analysis to capture vibration modes, frequency response, and time-dependent loading effects.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Parametric Study</h4>
+            <p>Investigate effect of angle of attack (0-20°), velocity (30-100 m/s), and material properties on structural response.</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>Optimization Studies</h4>
+            <p>Apply topology optimization and shape optimization to minimize mass while maintaining adequate safety factors (2-3 instead of 241).</p>
+          </div>
+
+          <div class="timeline-item">
+            <h4>Composite Materials Analysis</h4>
+            <p>Explore fiber-reinforced composites with anisotropic properties for further weight reduction and tailored stiffness.</p>
+          </div>
+
+          <div class="timeline-item">
+            <h4>Flutter & Divergence Analysis</h4>
+            <p>Perform aeroelastic stability analysis to determine critical flutter speed and divergence boundaries.</p>
+          </div>
+
+          <div class="timeline-item">
+            <h4>Experimental Validation</h4>
+            <p>Wind tunnel testing and strain gauge measurements on physical prototype to validate CFD and FEM predictions.</p>
+          </div>
+        </div>
+
+        <h3>Practical Applications</h3>
+        <p>
+          The methodology developed in this study has direct applications in:
+        </p>
+
+        <ul>
+          <li><strong>Drone Design:</strong> Preliminary structural assessment for fixed-wing UAV development</li>
+          <li><strong>Educational Tools:</strong> Demonstrating FSI concepts and ANSYS Workbench capabilities</li>
+          <li><strong>Design Optimization:</strong> Baseline for iterative improvement and topology optimization</li>
+          <li><strong>Load Case Studies:</strong> Framework for analyzing multiple flight conditions</li>
+          <li><strong>Material Selection:</strong> Comparing structural performance of different materials</li>
+        </ul>
+
+        <div class="highlight-box">
+          <h4>Final Remarks</h4>
+          <p>
+            This project successfully demonstrated fluid-structure interaction analysis using industry-standard tools and methods. While the solid wing geometry revealed significant over-design, this finding itself is valuable - it highlights the importance of realistic structural modeling and provides clear direction for optimization. The established workflow serves as a solid foundation for more advanced analyses incorporating realistic wing structures, two-way coupling, and dynamic effects.
+          </p>
+          <p>
+            The extreme safety factor obtained (241) underscores a fundamental principle in aerospace engineering: weight is critical. Every gram saved in structural mass translates to improved performance, efficiency, and capability. Future iterations of this design should focus on lightweight construction methods that maintain adequate safety margins (typically 1.5-3.0) while dramatically reducing mass.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">Competencies</div>
+        <h2>Skills & Technologies Demonstrated</h2>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4>CFD Analysis</h4>
+            <ul>
+              <li>ANSYS Fluent setup and configuration</li>
+              <li>Turbulence modeling (k-ω SST)</li>
+              <li>Boundary condition specification</li>
+              <li>Convergence monitoring and analysis</li>
+              <li>Aerodynamic coefficient calculation</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>Structural Analysis</h4>
+            <ul>
+              <li>ANSYS Mechanical static analysis</li>
+              <li>Material property definition</li>
+              <li>Finite element modeling</li>
+              <li>Stress and deformation analysis</li>
+              <li>Safety factor calculations</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>FSI Coupling</h4>
+            <ul>
+              <li>ANSYS Workbench workflow setup</li>
+              <li>Data transfer between physics domains</li>
+              <li>One-way coupling implementation</li>
+              <li>Load mapping and interpolation</li>
+              <li>Result validation across domains</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4>Engineering Analysis</h4>
+            <ul>
+              <li>Aerodynamic load determination</li>
+              <li>Structural integrity assessment</li>
+              <li>Design evaluation and critique</li>
+              <li>Results interpretation</li>
+              <li>Technical documentation</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>© 2026 Yazid Hamza - Mechanical & Aerospace Engineer | FSI Analysis</p>
+    </div>
+  </footer>
+</body>
+</html>
